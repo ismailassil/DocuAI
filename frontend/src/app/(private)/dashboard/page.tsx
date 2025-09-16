@@ -1,10 +1,16 @@
+"use client";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BarChart3, FileText, MessageSquare, TrendingUp, Users, Zap } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import FileUpload from "@/components/file-upload";
 
 export default function Dashboard() {
+	const [showUpload, setShowUpload] = useState(false);
+
 	return (
 		<div className="min-h-screen bg-background">
 			{/* Header */}
@@ -25,7 +31,7 @@ export default function Dashboard() {
 								Dashboard
 							</Link>
 							<Link href="/chat" className="text-foreground/70 hover:text-foreground">
-								Chat Assistant
+								Assistant
 							</Link>
 							<Button variant="outline" size="sm">
 								Settings
@@ -34,6 +40,14 @@ export default function Dashboard() {
 					</div>
 				</div>
 			</header>
+
+			{showUpload && (
+				<div className="bg-black/30 backdrop-blur-sm size-full absolute top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2">
+					<div className="size-full flex items-center justify-center">
+						<FileUpload setShow={() => setShowUpload(false)} />
+					</div>
+				</div>
+			)}
 
 			<main className="container mx-auto px-4 py-8">
 				{/* Welcome Section */}
@@ -148,7 +162,7 @@ export default function Dashboard() {
 						<CardContent className="space-y-4">
 							<Link href="/chat">
 								<Button
-									className="w-full justify-start bg-transparent"
+									className="w-full justify-start bg-transparent cursor-pointer"
 									variant="outline"
 								>
 									<MessageSquare className="mr-2 h-4 w-4" />
@@ -156,21 +170,22 @@ export default function Dashboard() {
 								</Button>
 							</Link>
 							<Button
-								className="w-full justify-start bg-transparent"
+								className="w-full justify-start bg-transparent cursor-pointer"
 								variant="outline"
+								onClick={() => setShowUpload(true)}
 							>
 								<FileText className="mr-2 h-4 w-4" />
 								Upload New Document
 							</Button>
 							<Button
-								className="w-full justify-start bg-transparent"
+								className="w-full justify-start bg-transparent cursor-pointer"
 								variant="outline"
 							>
 								<BarChart3 className="mr-2 h-4 w-4" />
 								View Analytics
 							</Button>
 							<Button
-								className="w-full justify-start bg-transparent"
+								className="w-full justify-start bg-transparent cursor-pointer"
 								variant="outline"
 							>
 								<Users className="mr-2 h-4 w-4" />

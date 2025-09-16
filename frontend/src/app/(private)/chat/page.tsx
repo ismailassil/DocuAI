@@ -141,7 +141,7 @@ export default function ChatAssistant() {
 								href="/chat"
 								className="text-secondary underline underline-offset-8 decoration-2"
 							>
-								Chat Assistant
+								Assistant
 							</Link>
 							<Button variant="outline" size="sm">
 								Settings
