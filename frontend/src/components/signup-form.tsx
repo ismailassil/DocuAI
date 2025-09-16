@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import api from "@/app/api_client/APIClient";
 import { useEffect, useState } from "react";
 import { Spinner } from "./ui/shadcn-io/spinner";
-import { useAuth } from "@/app/api_client/AuthContext";
+import { useAuth } from "@/api_client/AuthContext";
+import { useForm } from "react-hook-form";
+import api from "@/api_client/APIClient";
 
 const formSchema = z.object({
 	username: z
@@ -144,7 +144,7 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
 							<div className="flex flex-col gap-4">
 								<Button
 									variant="outline"
-									className="w-full bg-transparent cursor-pointer"
+									className="w-full cursor-pointer bg-transparent"
 								>
 									<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 										<path

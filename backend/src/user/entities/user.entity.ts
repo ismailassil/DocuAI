@@ -1,4 +1,11 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Message } from 'src/ai/entities/message.entity';
+import {
+  Column,
+  Entity,
+  Index,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity('users')
 export class User {
@@ -21,4 +28,7 @@ export class User {
 
   @Column()
   password: string;
+
+  @OneToMany(() => Message, (message) => message.user)
+  messages: string[];
 }

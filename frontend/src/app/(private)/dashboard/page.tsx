@@ -1,26 +1,185 @@
-import { ChartAreaInteractive } from "@/components/chart-area-interactive";
-import { DataTable } from "@/components/data-table";
-import { SectionCards } from "@/components/section-cards";
-import { SiteHeader } from "@/components/site-header";
-import { SidebarInset } from "@/components/ui/sidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { BarChart3, FileText, MessageSquare, TrendingUp, Users, Zap } from "lucide-react";
+import Link from "next/link";
 
-import data from "./data.json";
-
-export default function Page() {
+export default function Dashboard() {
 	return (
-		<SidebarInset>
-			<SiteHeader siteName="Dashboard" />
-			<div className="flex flex-1 flex-col">
-				<div className="@container/main flex flex-1 flex-col gap-2">
-					<div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-						<SectionCards />
-						<div className="px-4 lg:px-6">
-							<ChartAreaInteractive />
+		<div className="min-h-screen bg-background">
+			{/* Header */}
+			<header className="border-b bg-card">
+				<div className="container mx-auto px-4 py-4">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-2">
+							<div className="flex items-center gap-2">
+								<Zap className="h-6 w-6 text-secondary" />
+								<span className="text-xl font-bold">DocuAI</span>
+							</div>
 						</div>
-						<DataTable data={data} />
+						<nav className="flex items-center gap-4">
+							<Link
+								href="/dashboard"
+								className="text-secondary underline underline-offset-8 decoration-2"
+							>
+								Dashboard
+							</Link>
+							<Link href="/chat" className="text-foreground/70 hover:text-foreground">
+								Chat Assistant
+							</Link>
+							<Button variant="outline" size="sm">
+								Settings
+							</Button>
+						</nav>
 					</div>
 				</div>
-			</div>
-		</SidebarInset>
+			</header>
+
+			<main className="container mx-auto px-4 py-8">
+				{/* Welcome Section */}
+				<div className="mb-8">
+					<h1 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h1>
+					<p className="text-foreground/70">
+						Here's what's happening with your documents today.
+					</p>
+				</div>
+
+				{/* Stats Cards */}
+				<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Total Documents</CardTitle>
+							<FileText className="h-4 w-4 text-secondary" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">2,847</div>
+							<p className="text-xs text-foreground/70">+12% from last month</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">API Calls</CardTitle>
+							<BarChart3 className="h-4 w-4 text-secondary" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">45,231</div>
+							<p className="text-xs text-foreground/70">+8% from last month</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Active Users</CardTitle>
+							<Users className="h-4 w-4 text-secondary" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">1,234</div>
+							<p className="text-xs text-foreground/70">+23% from last month</p>
+						</CardContent>
+					</Card>
+
+					<Card>
+						<CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+							<CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+							<TrendingUp className="h-4 w-4 text-secondary" />
+						</CardHeader>
+						<CardContent>
+							<div className="text-2xl font-bold">98.5%</div>
+							<p className="text-xs text-foreground/70">+0.3% from last month</p>
+						</CardContent>
+					</Card>
+				</div>
+
+				{/* Recent Activity & Quick Actions */}
+				<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+					{/* Recent Activity */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Recent Activity</CardTitle>
+							<CardDescription>Latest document processing activities</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<div className="flex items-center gap-3">
+								<div className="w-2 h-2 bg-secondary rounded-full"></div>
+								<div className="flex-1">
+									<p className="text-sm font-medium">
+										Financial Report Q3 processed
+									</p>
+									<p className="text-xs text-foreground/70">2 minutes ago</p>
+								</div>
+								<Badge variant="secondary">Success</Badge>
+							</div>
+							<div className="flex items-center gap-3">
+								<div className="w-2 h-2 bg-secondary rounded-full"></div>
+								<div className="flex-1">
+									<p className="text-sm font-medium">
+										Contract Analysis completed
+									</p>
+									<p className="text-xs text-foreground/70">15 minutes ago</p>
+								</div>
+								<Badge variant="secondary">Success</Badge>
+							</div>
+							<div className="flex items-center gap-3">
+								<div className="w-2 h-2 bg-secondary rounded-full"></div>
+								<div className="flex-1">
+									<p className="text-sm font-medium">Research Paper indexed</p>
+									<p className="text-xs text-foreground/70">1 hour ago</p>
+								</div>
+								<Badge variant="secondary">Success</Badge>
+							</div>
+							<div className="flex items-center gap-3">
+								<div className="w-2 h-2 bg-secondary rounded-full"></div>
+								<div className="flex-1">
+									<p className="text-sm font-medium">Legal Document extracted</p>
+									<p className="text-xs text-foreground/70">3 hours ago</p>
+								</div>
+								<Badge variant="secondary">Success</Badge>
+							</div>
+						</CardContent>
+					</Card>
+
+					{/* Quick Actions */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Quick Actions</CardTitle>
+							<CardDescription>Common tasks and shortcuts</CardDescription>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							<Link href="/chat">
+								<Button
+									className="w-full justify-start bg-transparent"
+									variant="outline"
+								>
+									<MessageSquare className="mr-2 h-4 w-4" />
+									Start Chat Assistant
+								</Button>
+							</Link>
+							<Button
+								className="w-full justify-start bg-transparent"
+								variant="outline"
+							>
+								<FileText className="mr-2 h-4 w-4" />
+								Upload New Document
+							</Button>
+							<Button
+								className="w-full justify-start bg-transparent"
+								variant="outline"
+							>
+								<BarChart3 className="mr-2 h-4 w-4" />
+								View Analytics
+							</Button>
+							<Button
+								className="w-full justify-start bg-transparent"
+								variant="outline"
+							>
+								<Users className="mr-2 h-4 w-4" />
+								Manage Team
+							</Button>
+						</CardContent>
+					</Card>
+				</div>
+			</main>
+		</div>
 	);
 }

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseService } from './database.service';
 import { User } from 'src/user/entities/user.entity';
+import { Message } from 'src/ai/entities/message.entity';
 
 @Module({
   imports: [
@@ -15,7 +16,7 @@ import { User } from 'src/user/entities/user.entity';
         autoLoadEntities: true,
       }),
     }),
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Message]),
   ],
   providers: [DatabaseService],
   exports: [DatabaseService],
