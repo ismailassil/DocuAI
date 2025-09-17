@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function FileUpload({ setShow }: { setShow: () => void }) {
 	const [files, setFiles] = React.useState<File[]>([]);
@@ -16,6 +18,26 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 		maxFiles: 5,
 		maxSize: 10000000,
 	});
+
+	async function handleSubmit() {
+		if (files.length === 0) return;
+
+		const formData = new FormData();
+		files.forEach((file) => formData.append("files", file));
+
+		try {
+			const res = await axios.post("http://localhost:8008/user/upload", formData);
+			console.log(res);
+			toast.info("SUCCESS", {
+				position: "top-center",
+			});
+		} catch (error) {
+			console.error(error);
+			toast.error("ERROR", {
+				position: "top-center",
+			});
+		}
+	}
 
 	const filesList = files.map((file) => (
 		<li key={file.name} className="relative">
@@ -41,7 +63,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 					</span>
 					<div>
 						<p className="font-medium text-foreground">
-							{file.name.length > 30 ? file.name.slice(0, 30) + "..." : file.name}
+							{file.name.length > 25 ? file.name.slice(0, 25) + "..." : file.name}
 						</p>
 						<p className="mt-0.5 text-sm text-muted-foreground">{file.size} bytes</p>
 					</div>
@@ -56,14 +78,15 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 				<CardHeader>
 					<CardTitle>Upload your files</CardTitle>
 					<CardDescription className="text-xs">
-					When you upload your files, we will analyze them and create a summarized version.
+						When you upload your files, we will analyze them and create a summarized
+						version.
 					</CardDescription>
 				</CardHeader>
 				<CardContent>
-					<form action="#" method="post">
+					<form onSubmit={handleSubmit}>
 						<div className="grid grid-cols-1 gap-4 sm:grid-cols-6">
 							<div className="col-span-full">
-								<Label htmlFor="file-upload-2" className="font-medium">
+								<Label htmlFor="file-upload" className="font-medium">
 									File(s) upload
 								</Label>
 								<div
@@ -89,8 +112,8 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 												<span>choose file(s)</span>
 												<input
 													{...getInputProps()}
-													id="file-upload-2"
-													name="file-upload-2"
+													id="file-upload"
+													name="file-upload"
 													type="file"
 													className="sr-only"
 												/>
@@ -99,10 +122,10 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 										</div>
 									</div>
 								</div>
-								<p className="mt-2 text-sm flex flex-col text-muted-foreground">
+								<div className="mt-2 text-sm flex flex-col text-muted-foreground">
 									<p>All file types are allowed to upload.</p>
 									<p>Max Size per file: 10MB</p>
-								</p>
+								</div>
 								{filesList.length > 0 && (
 									<>
 										<h4 className="mt-6 font-medium text-foreground">
@@ -125,7 +148,11 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 							>
 								Cancel
 							</Button>
-							<Button type="submit" className="cursor-pointer">
+							<Button
+								type="submit"
+								className="cursor-pointer"
+								onSubmit={handleSubmit}
+							>
 								Upload
 							</Button>
 						</div>

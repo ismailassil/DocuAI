@@ -3,20 +3,23 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseService } from './database.service';
 import { User } from 'src/user/entities/user.entity';
 import { Message } from 'src/ai/entities/message.entity';
+import { ConfigService } from '@nestjs/config';
+import { File } from 'src/user/entities/file.entity';
 
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({
-      useFactory: () => ({
+      useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        username: process.env.POSTGRESQL_PG_USER,
-        password: process.env.POSTGRESQL_PG_PASSWORD,
-        database: process.env.POSTGRESQL_PG_DB,
+        username: configService.getOrThrow('POSTGRESQL_PG_USER'),
+        password: configService.getOrThrow('POSTGRESQL_PG_PASSWORD'),
+        database: configService.getOrThrow('POSTGRESQL_PG_DB'),
         synchronize: true, // TODO: REMOVE IN PROD
         autoLoadEntities: true,
       }),
+      inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Message]),
+    TypeOrmModule.forFeature([User, Message, File]),
   ],
   providers: [DatabaseService],
   exports: [DatabaseService],

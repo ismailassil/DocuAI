@@ -1,4 +1,5 @@
 import { Message } from 'src/ai/entities/message.entity';
+import { File } from './file.entity';
 import {
   Column,
   Entity,
@@ -31,4 +32,7 @@ export class User {
 
   @OneToMany(() => Message, (message) => message.user)
   messages: string[];
+
+  @OneToMany(() => File, (file) => file.user)
+  files: string[];
 }

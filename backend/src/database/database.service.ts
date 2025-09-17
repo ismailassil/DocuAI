@@ -97,4 +97,6 @@ export class DatabaseService {
 
     return await this.messageRepo.save(newMessage);
   }
+
+  saveFiles(userId: number, files: Express.Multer.File[]) {}
 }

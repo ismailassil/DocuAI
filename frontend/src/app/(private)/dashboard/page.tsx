@@ -54,7 +54,7 @@ export default function Dashboard() {
 				<div className="mb-8">
 					<h1 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h1>
 					<p className="text-foreground/70">
-						Here's what's happening with your documents today.
+						Here&apos;s what&apos;s happening with your documents today.
 					</p>
 				</div>
 
