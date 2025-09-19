@@ -7,6 +7,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+import { Token } from './tokens.entity';
 
 @Entity('users')
 export class User {
@@ -35,4 +36,7 @@ export class User {
 
   @OneToMany(() => File, (file) => file.user)
   files: string[];
+
+  @OneToMany(() => Token, (token) => token.user)
+  tokens: string[];
 }

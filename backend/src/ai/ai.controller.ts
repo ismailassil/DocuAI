@@ -1,9 +1,19 @@
-import { Controller, Get, Query, Res, ValidationPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  NotFoundException,
+  Query,
+  Res,
+  UseGuards,
+  ValidationPipe,
+} from '@nestjs/common';
 import { AIService } from './ai.service';
 import type { Response } from 'express';
 import { DatabaseService } from 'src/database/database.service';
 import { QUESTION_DTO } from './entities/question.dto';
+import { AuthGuard } from 'src/auth/guards/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('ai')
 export class AIController {
   constructor(
@@ -34,6 +44,9 @@ export class AIController {
      */
     response.flushHeaders();
 
+    const user = await this.databaseService.getUserById(1);
+    if (!user) throw new NotFoundException('User Not Found');
+
     // parse the query to not exceed a certain length (200 characters)
     const messages = await this.databaseService.getUserMessageContextByLimit(1);
 
@@ -47,8 +60,8 @@ export class AIController {
       ai_response += part.choices[0].delta?.content;
     }
 
-    await this.databaseService.registerMessage(1, question, 'user');
-    await this.databaseService.registerMessage(1, ai_response, 'assistant');
+    await this.databaseService.registerMessage(user, question, 'user');
+    await this.databaseService.registerMessage(user, ai_response, 'assistant');
 
     response.end();
   }

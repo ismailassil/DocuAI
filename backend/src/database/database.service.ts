@@ -4,8 +4,11 @@ import { AI_ROLES } from 'src/ai/entities/ai_role.enum';
 import { MESSAGE_DTO } from 'src/ai/entities/message.dto';
 import { Message } from 'src/ai/entities/message.entity';
 import { RegisterDTO } from 'src/auth/entities/register.dto';
+import { File } from 'src/user/entities/file.entity';
+import { Token } from 'src/user/entities/tokens.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
+import { InsertResult } from 'typeorm/browser';
 
 @Injectable()
 export class DatabaseService {
@@ -14,6 +17,10 @@ export class DatabaseService {
     private readonly userRepo: Repository<User>,
     @InjectRepository(Message)
     private readonly messageRepo: Repository<Message>,
+    @InjectRepository(File)
+    private readonly fileRepo: Repository<File>,
+    @InjectRepository(Token)
+    private readonly tokenRepo: Repository<Token>,
   ) {}
 
   getUserById(id: number): Promise<User | null> {
@@ -85,12 +92,12 @@ export class DatabaseService {
   }
 
   async registerMessage(
-    userId: number,
+    user: User,
     message: string,
     role: AI_ROLES,
   ): Promise<Message | null> {
     const newMessage = this.messageRepo.create({
-      userId: userId,
+      user,
       message: message,
       role: role,
     });
@@ -98,5 +105,52 @@ export class DatabaseService {
     return await this.messageRepo.save(newMessage);
   }
 
-  saveFiles(userId: number, files: Express.Multer.File[]) {}
+  async saveFiles(files: Partial<File>[]): Promise<InsertResult> {
+    return await this.fileRepo.insert(files);
+  }
+
+  async getTokenInfo(token: string) {
+    return await this.tokenRepo.findOne({
+      where: {
+        value: token,
+      },
+      relations: {
+        user: true,
+      },
+    });
+  }
+
+  async updateTokenInfo(token: Token) {
+    return await this.tokenRepo.save(token);
+  }
+
+  async registerRefreshToken(userInfo: User, token: string) {
+    const currentDate = new Date();
+    const daysToAdd = 7;
+    const futureDate = new Date(currentDate);
+    futureDate.setDate(currentDate.getDate() + daysToAdd);
+
+    const newToken = new Token({
+      user: userInfo,
+      value: token,
+      expiresAt: futureDate,
+    });
+
+    const entity = this.tokenRepo.create(newToken);
+
+    return this.tokenRepo.save(entity);
+  }
+
+  async getUserFiles(userId: number, max: number, limit: number) {
+    return await this.fileRepo.find({
+      where: {
+        user_id: userId,
+      },
+      take: max,
+      skip: limit,
+      order: {
+        createdAt: 'ASC',
+      },
+    });
+  }
 }

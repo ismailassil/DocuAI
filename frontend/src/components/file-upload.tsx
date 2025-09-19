@@ -17,6 +17,12 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 		onDrop: (acceptedFiles) => setFiles(acceptedFiles),
 		maxFiles: 5,
 		maxSize: 10000000,
+		accept: {
+			"application/pdf": [".pdf"],
+			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+			"application/msword": [".doc"],
+			"text/plain": [".txt"],
+		},
 	});
 
 	async function handleSubmit() {
@@ -32,7 +38,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 				position: "top-center",
 			});
 		} catch (error) {
-			console.error(error);
+			console.log(error);
 			toast.error("ERROR", {
 				position: "top-center",
 			});
@@ -120,6 +126,10 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 											</label>
 											<p className="pl-1">to upload</p>
 										</div>
+										<p className="text-xs text-center text-muted-foreground/80">
+											Allowed documents: <code>pdf</code>, <code>docx</code>,{" "}
+											<code>doc</code>, <code>txt</code>
+										</p>
 									</div>
 								</div>
 								<div className="mt-2 text-sm flex flex-col text-muted-foreground">

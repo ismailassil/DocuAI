@@ -12,11 +12,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import axios, { AxiosError } from "axios";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Spinner } from "./ui/shadcn-io/spinner";
-import { useAuth } from "@/api_client/AuthContext";
+import { useAuth, User } from "@/api_client/AuthContext";
 import { useForm } from "react-hook-form";
-import api from "@/api_client/APIClient";
 
 const formSchema = z.object({
 	username: z
@@ -81,7 +80,7 @@ const formSchema = z.object({
 export default function SignUpForm({ className, ...props }: React.ComponentProps<"div">) {
 	const router = useRouter();
 	const [loading, setLoading] = useState(false);
-	const { isAuthenticated, setIsAuthenticated, setUser } = useAuth();
+	const { login } = useAuth();
 
 	const {
 		handleSubmit,
@@ -98,30 +97,18 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
 		},
 	});
 
-	useEffect(() => {
-		if (isAuthenticated) {
-			router.push("/dashboard");
-		}
-		return () => {};
-	}, [isAuthenticated, router]);
-
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		setLoading(true);
 		try {
-			const res = await axios.post<{ success: boolean; message: string }>(
+			const res = await axios.post<{ success: boolean; message: string; data: User }>(
 				"http://localhost:8008/auth/register",
 				{ ...values },
 				{ withCredentials: true },
 			);
 			toast.success(res.data.message);
 			const accessToken = res.headers["authorization"].split(" ")[1];
-			api.setAccessToken(accessToken);
-			setIsAuthenticated(true);
-			setUser({
-				username: values.username,
-				email: values.email,
-			});
-			router.push("/dashboard");
+			login(accessToken, res.data.data);
+			router.replace("/dashboard");
 		} catch (error) {
 			toast.error(
 				(error as AxiosError<{ message: string }>).response?.data?.message || "Error",
@@ -220,6 +207,7 @@ export default function SignUpForm({ className, ...props }: React.ComponentProps
 									<Input
 										id="password"
 										type="password"
+										placeholder={"•".repeat(15)}
 										required
 										{...register("password")}
 										error={errors.password?.message}

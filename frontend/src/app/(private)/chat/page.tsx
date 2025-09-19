@@ -6,12 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Bot, User, Zap, SendHorizonal } from "lucide-react";
-import Link from "next/link";
+import { Bot, User, SendHorizonal } from "lucide-react";
 import axios from "axios";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
-import Logo from "@/components/Logo";
 
 type MessageType = {
 	role: "user" | "assistant";
@@ -84,12 +82,14 @@ export default function ChatAssistant() {
 			const decoder = new TextDecoder();
 			let newMessage: string = "";
 			while (true) {
-				const { value, done } = await reader?.read();
-				if (done) break;
-				if (value) {
-					const chunk = decoder.decode(value, { stream: true });
-					newMessage += chunk;
-					setStreamedMessage((prev) => prev + chunk);
+				if (reader) {
+					const { value, done } = await reader.read();
+					if (done) break;
+					if (value) {
+						const chunk = decoder.decode(value, { stream: true });
+						newMessage += chunk;
+						setStreamedMessage((prev) => prev + chunk);
+					}
 				}
 			}
 			setMessages((prev) => [
@@ -119,40 +119,9 @@ export default function ChatAssistant() {
 	if (IsHistory) return <Spinner />;
 
 	return (
-		<div className="h-screen bg-background flex flex-col">
-			{/* Header */}
-			<header className="border-b bg-card flex-shrink-0">
-				<div className="container mx-auto px-4 py-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<div className="flex items-center gap-2">
-								<Logo />
-								<span className="text-xl font-bold">DocuAI</span>
-							</div>
-						</div>
-						<nav className="flex items-center gap-4">
-							<Link
-								href="/dashboard"
-								className="text-foreground/70 hover:text-foreground"
-							>
-								Dashboard
-							</Link>
-							<Link
-								href="/chat"
-								className="text-secondary underline underline-offset-8 decoration-2"
-							>
-								Assistant
-							</Link>
-							<Button variant="outline" size="sm">
-								Settings
-							</Button>
-						</nav>
-					</div>
-				</div>
-			</header>
-
+		<div className="min-h-[calc(100vh-65px)] bg-background flex flex-col">
 			{/* Chat Container */}
-			<div className="flex-1 container mx-auto px-4 py-6 max-w-4xl flex flex-col min-h-0">
+			<div className="flex-1 container mx-auto px-4 py-6 w-full flex flex-col min-h-0">
 				<Card className="flex-1 flex py-0 flex-col min-h-0">
 					{/* Chat Header */}
 					<div className="p-4 border-b flex-shrink-0">

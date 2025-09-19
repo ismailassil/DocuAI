@@ -5,16 +5,7 @@ import { AuthController } from './auth.controller';
 import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
-  imports: [
-    JwtModule.register({
-      global: true,
-      secret: 'secret-key',
-      signOptions: {
-        expiresIn: '30m',
-      },
-    }),
-    DatabaseModule,
-  ],
+  imports: [JwtModule.register({ global: true }), DatabaseModule],
   providers: [AuthService],
   controllers: [AuthController],
 })

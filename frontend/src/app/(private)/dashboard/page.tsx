@@ -3,44 +3,21 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BarChart3, FileText, MessageSquare, TrendingUp, Users, Zap } from "lucide-react";
+import { BarChart3, FileText, MessageSquare, TrendingUp, Users } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FileUpload from "@/components/file-upload";
 
 export default function Dashboard() {
 	const [showUpload, setShowUpload] = useState(false);
 
-	return (
-		<div className="min-h-screen bg-background">
-			{/* Header */}
-			<header className="border-b bg-card">
-				<div className="container mx-auto px-4 py-4">
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-2">
-							<div className="flex items-center gap-2">
-								<Zap className="h-6 w-6 text-secondary" />
-								<span className="text-xl font-bold">DocuAI</span>
-							</div>
-						</div>
-						<nav className="flex items-center gap-4">
-							<Link
-								href="/dashboard"
-								className="text-secondary underline underline-offset-8 decoration-2"
-							>
-								Dashboard
-							</Link>
-							<Link href="/chat" className="text-foreground/70 hover:text-foreground">
-								Assistant
-							</Link>
-							<Button variant="outline" size="sm">
-								Settings
-							</Button>
-						</nav>
-					</div>
-				</div>
-			</header>
+	useEffect(() => {
+		
+		return () => {};
+	}, []);
 
+	return (
+		<div className="min-h-[calc(100vh-65px)] bg-background">
 			{showUpload && (
 				<div className="bg-black/30 backdrop-blur-sm size-full absolute top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2">
 					<div className="size-full flex items-center justify-center">

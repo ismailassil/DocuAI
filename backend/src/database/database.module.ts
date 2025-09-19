@@ -5,6 +5,7 @@ import { User } from 'src/user/entities/user.entity';
 import { Message } from 'src/ai/entities/message.entity';
 import { ConfigService } from '@nestjs/config';
 import { File } from 'src/user/entities/file.entity';
+import { Token } from 'src/user/entities/tokens.entity';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { File } from 'src/user/entities/file.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User, Message, File]),
+    TypeOrmModule.forFeature([User, Message, File, Token]),
   ],
   providers: [DatabaseService],
   exports: [DatabaseService],

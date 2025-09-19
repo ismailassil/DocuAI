@@ -1,4 +1,11 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { User } from './user.entity';
 
 @Entity('files')
@@ -12,6 +19,20 @@ export class File {
   @Column()
   filename: string;
 
+  @Column()
+  summarized_filename: string;
+
   @ManyToOne(() => User, (user) => user.files)
+  @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @Column()
+  user_id: number;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  constructor(file: Partial<File>) {
+    Object.assign(this, file);
+  }
 }
