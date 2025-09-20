@@ -5,6 +5,8 @@ import {
   HttpStatus,
   Inject,
   NotFoundException,
+  Param,
+  ParseIntPipe,
   Post,
   Req,
   Res,
@@ -17,11 +19,14 @@ import { diskStorage } from 'multer';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from './user.service';
 import { AIService } from 'src/ai/ai.service';
-import { FileInfo } from './entities/file_info.type';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import type { Cache } from 'cache-manager';
 import type { Request, Response } from 'express';
-import { JWT_PAYLOAD } from 'src/auth/entities/jwt.payload';
+import type { EXTRACTED_JWT_PAYLOAD } from 'src/auth/entities/jwt.payload';
+import { FileDTO } from './entities/file.dto';
+import { createReadStream } from 'fs';
+import { join } from 'path';
+import fs from 'fs';
 
 @UseGuards(AuthGuard)
 @Controller('user')
@@ -35,7 +40,7 @@ export class UserController {
 
   @Post('upload')
   @UseInterceptors(
-    FileFieldsInterceptor([{ name: 'files', maxCount: 5 }], {
+    FileFieldsInterceptor([{ name: 'docs', maxCount: 5 }], {
       storage: diskStorage({
         destination: './uploads',
         filename: function (_, file, cb) {
@@ -50,44 +55,77 @@ export class UserController {
       },
     }),
   )
-  async uploadFile(@UploadedFiles() files: { files?: Express.Multer.File[] }) {
-    if (files && files['files']) {
-      console.log(files['files']);
-      // TODO - register the filename + the originalname of the file into DB
-      const filesInfo = await this.userService.filterAndSaveFiles(
-        files['files'],
-      );
+  async uploadFile(
+    @Req() req: Request,
+    @UploadedFiles() files: { docs?: Express.Multer.File[] },
+  ) {
+    const userExt = req['user'] as EXTRACTED_JWT_PAYLOAD;
 
-      const errorFiles: { info: FileInfo; error: string }[] = [];
+    if (!files || !files['docs'])
+      throw new NotFoundException('No Docs Has Arrived');
 
-      for (const file of filesInfo) {
-        try {
-          // TODO - Upload the file into deepseek for analyzing and getting new file summarized
-          const response = await this.aiService.analyzeDocs(file);
+    const filesInfo = await this.userService.filterAndSaveFiles(
+      files['docs'],
+      userExt.sub,
+    );
 
-          const content = response.choices[0].message.content;
-          if (!content) throw new Error('Empty Summarized Content');
-
-          this.userService.generateSummarizedFile(content, file);
-        } catch (error) {
-          errorFiles.push({ info: file, error: (error as Error).message });
-        }
-      }
-    }
+    void this.userService.analyzeFiles(filesInfo);
 
     return { message: 'Files Uploaded and Summarized Successfully' };
   }
 
   @Get('recent-files')
   async getRecentFiles(@Req() req: Request) {
-    const user = req['user'] as JWT_PAYLOAD;
+    const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
 
-    const filesInfo = await this.databaseService.getUserFiles(user.sub, 5, 0);
+    const filesInfo = await this.databaseService.getUserFiles(user.sub, 4, 0);
     if (!filesInfo || filesInfo.length === 0) {
       throw new NotFoundException('No Files Found');
     }
 
-    return filesInfo;
+    return {
+      originalFiles: filesInfo.map(
+        (file) => new FileDTO(file, file.original_name),
+      ),
+      summarizedFiles: filesInfo.map(
+        (file) => new FileDTO(file, file.summarized_filename),
+      ),
+    };
+  }
+
+  @Get('file/:id')
+  async getFile(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res: Response,
+  ) {
+    const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
+    const fileInfo = await this.userService.isValidFileOwnership(id, user.sub);
+
+    const path = join(
+      __dirname,
+      '../../uploads/' + fileInfo.summarized_filename,
+    );
+    if (!fs.existsSync(path)) {
+      throw new NotFoundException('File no longer exists');
+    }
+
+    const info = fs.statSync(path);
+
+    res.setHeader('Content-Type', 'text/markdown');
+    res.setHeader('Content-Length', info.size);
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="sum-${fileInfo.original_name}.md"`,
+    );
+
+    const fileStream = createReadStream(path);
+    fileStream.on('error', (err) => {
+      console.error('Error while Streaming', err);
+      res.status(500).end('Error reading file');
+    });
+
+    fileStream.pipe(res);
   }
 
   @Post('logout')
@@ -96,18 +134,23 @@ export class UserController {
     const token: string = request['token'] as string;
     const refreshToken = request.cookies['refresh_token'] as string;
 
+    console.log('-----------------1');
     const tokenInfo = await this.databaseService.getTokenInfo(refreshToken);
 
+    console.log('-----------------2');
     if (tokenInfo) {
       await this.databaseService.updateTokenInfo({
         ...tokenInfo,
         is_used: true,
       });
     }
+    console.log('-----------------3');
 
     await this.cacheManager.set(`blacklist:${token}`, 'isBlacklisted');
+    console.log('-----------------4');
     response.clearCookie('refresh_token');
 
-    return { success: true };
+    console.log('-----------------5');
+    response.send({ success: true });
   }
 }

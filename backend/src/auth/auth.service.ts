@@ -100,6 +100,7 @@ export class AuthService {
   async refreshToken(tokenInfo: Token, decode: JWT_PAYLOAD) {
     const updatedToken = new Token({ ...tokenInfo, is_used: true });
 
+    console.log('RefreshToken');
     console.log(updatedToken);
     console.log(decode);
     await this.databaseService.updateTokenInfo(updatedToken);

@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bot, User, SendHorizonal } from "lucide-react";
-import axios from "axios";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
+import { useAuth } from "@/api_client/AuthContext";
 
 type MessageType = {
 	role: "user" | "assistant";
@@ -21,8 +21,10 @@ export default function ChatAssistant() {
 	const [messages, setMessages] = useState<MessageType[]>([
 		{
 			role: "assistant",
-			message:
-				"Hello! I'm your DocuAI assistant. I can help you search through documents, extract insights, and answer questions about your content. What would you like to know?",
+			message: `Hello! I'm your DocuAI assistant. 
+				I can help you search through documents, extract insights, 
+				and answer questions about your content.
+				What would you like to know?`,
 			createAt: new Date(),
 		},
 	]);
@@ -30,29 +32,32 @@ export default function ChatAssistant() {
 	const [input, setInput] = useState("");
 	const [streamedMessage, setStreamedMessage] = useState("");
 	const [isStreaming, setIsStreaming] = useState(false);
-	const [IsHistory, setIsHistory] = useState(false);
+	const [IsHistory, setIsHistory] = useState(true);
 	const messagesEndRef = useRef<HTMLDivElement>(null);
+	const { axiosPrivate } = useAuth();
 
 	useEffect(() => {
 		async function getHistory() {
 			try {
-				const res = await axios.get<MessageType[]>("http://localhost:8008/ai/chat-history");
-				setMessages(res.data);
+				const res = await axiosPrivate.get<MessageType[]>("/ai/chat-history");
+				if (res.data.length !== 0) {
+					setMessages(res.data);
+				}
 				console.log(res.data);
 			} catch (error) {
 				console.log(error);
 				toast.error("Error - History fetching", {
 					position: "top-center",
 				});
+			} finally {
+				setIsHistory(false);
 			}
 		}
 
-		setIsHistory(true);
 		getHistory();
-		setIsHistory(false);
 
 		return () => {};
-	}, []);
+	}, [axiosPrivate]);
 
 	useEffect(() => {
 		messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -69,29 +74,18 @@ export default function ChatAssistant() {
 
 		setIsStreaming(true);
 		try {
-			const response = await fetch(
-				"http://localhost:8008/ai/ask?question=" + encodeURIComponent(trimmedInput),
-			);
-			if (!response.ok) {
-				console.log(response);
-				throw new Error(`Response status: ${response.status}`);
-			}
-			console.log(response.body);
-			setIsStreaming(false);
-			const reader = response.body?.getReader();
-			const decoder = new TextDecoder();
 			let newMessage: string = "";
-			while (true) {
-				if (reader) {
-					const { value, done } = await reader.read();
-					if (done) break;
-					if (value) {
-						const chunk = decoder.decode(value, { stream: true });
-						newMessage += chunk;
-						setStreamedMessage((prev) => prev + chunk);
-					}
-				}
-			}
+			await axiosPrivate.get("/ai/ask?question=" + encodeURIComponent(trimmedInput), {
+				responseType: "stream",
+				onDownloadProgress(progressEvent) {
+					setIsStreaming(false);
+					const chunk = progressEvent.event.originalTarget.response;
+					newMessage = chunk;
+					setStreamedMessage(chunk);
+					console.log(progressEvent.event.originalTarget.response);
+				},
+				timeout: 3 * 60 * 1000,
+			});
 			setMessages((prev) => [
 				...prev,
 				{ role: "assistant", message: newMessage, createAt: new Date() },
@@ -116,13 +110,11 @@ export default function ChatAssistant() {
 		}
 	};
 
-	if (IsHistory) return <Spinner />;
-
 	return (
-		<div className="min-h-[calc(100vh-65px)] bg-background flex flex-col">
+		<div className="min-h-[calc(100vh-65px)] max-h-[calc(100vh-65px)] bg-background flex flex-col">
 			{/* Chat Container */}
 			<div className="flex-1 container mx-auto px-4 py-6 w-full flex flex-col min-h-0">
-				<Card className="flex-1 flex py-0 flex-col min-h-0">
+				<Card className="flex-1 flex py-0 flex-col min-h-0 !gap-0">
 					{/* Chat Header */}
 					<div className="p-4 border-b flex-shrink-0">
 						<div className="flex items-center gap-2">
@@ -136,7 +128,14 @@ export default function ChatAssistant() {
 					</div>
 
 					{/* Messages Area */}
-					<div className="flex-1 min-h-0 bg-white">
+					{IsHistory && (
+						<Spinner
+							className="mx-auto h-screen text-blue-500"
+							variant="infinite"
+							size={40}
+						/>
+					)}
+					<div className="flex-1 min-h-0 overflow-y-scroll bg-white">
 						<ScrollArea className="h-full p-4">
 							<div className="space-y-4">
 								{messages.map((message, index) => (

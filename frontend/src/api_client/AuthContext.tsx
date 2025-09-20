@@ -20,7 +20,6 @@ interface ProviderProps {
 	axiosPrivate: AxiosInstance;
 	logout: () => void;
 	login: (token: string, userData: User) => void;
-
 	loading: boolean;
 	setLoading: Dispatch<SetStateAction<boolean>>;
 }
@@ -40,34 +39,34 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(true);
 	const [user, setUser] = useState<User | null>(null);
 	const [isAuthenticated, setIsAuthenticated] = useState(false);
 
 	const login = (token: string, userData: User) => {
-		setUser(userData);
 		setIsAuthenticated(true);
 		api.setAccessToken(token);
+		setUser(userData);
 	};
 
 	const logout = () => {
-		setUser(null);
 		setIsAuthenticated(false);
 		api.clearAccessToken();
+		setUser(null);
 	};
 
 	useEffect(() => {
 		async function initAuth() {
-			setLoading(true);
 			try {
 				const { token, userData } = await api.refresh();
 				if (token && userData) {
 					login(token, userData);
+				} else {
+					logout();
 				}
 			} catch (error) {
 				toast.info("Silent Refresh Failed", { position: "top-center" });
-				console.log("ERROR", error);
-				console.log(error);
+				console.log("[initAuth]", error);
 				logout();
 			} finally {
 				setLoading(false);

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { signInDTO } from './entities/signIn.dto';
-import type { Response } from 'express';
+import type { CookieOptions, Response } from 'express';
 import { RegisterDTO } from './entities/register.dto';
 import { RefreshGuard } from './guards/refresh.guard';
 import { Token } from 'src/user/entities/tokens.entity';
@@ -19,6 +19,13 @@ import { JWT_PAYLOAD } from './entities/jwt.payload';
 
 @Controller('auth')
 export class AuthController {
+  private cookieOptions: CookieOptions = {
+    httpOnly: true,
+    maxAge: 8 * 60 * 60 * 24 * 1000,
+    sameSite: 'lax',
+    secure: false,
+    path: '/',
+  };
   constructor(private authService: AuthService) {}
 
   @HttpCode(HttpStatus.OK)
@@ -35,10 +42,7 @@ export class AuthController {
         signInDto.password,
       );
 
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      maxAge: 2 * 60000,
-    });
+    response.cookie('refresh_token', refreshToken, this.cookieOptions);
 
     response.header('Authorization', 'Bearer ' + accessToken);
 
@@ -56,12 +60,7 @@ export class AuthController {
     const { accessToken, refreshToken, data } =
       await this.authService.registerUser(registerDto);
 
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      maxAge: 2 * 60000,
-      sameSite: 'strict',
-      secure: false,
-    });
+    res.cookie('refresh_token', refreshToken, this.cookieOptions);
     res.setHeader('Authorization', 'Bearer ' + accessToken);
 
     return res.send({
@@ -76,7 +75,7 @@ export class AuthController {
    */
   @Post('refresh-token')
   @UseGuards(RefreshGuard)
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   async refreshToken(@Req() request: Request, @Res() response: Response) {
     const tokenInfo = request['refresh_token_info'] as Token;
     const decode = request['user'] as JWT_PAYLOAD;
@@ -86,12 +85,7 @@ export class AuthController {
 
     response.clearCookie('refresh_token');
 
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      maxAge: 8 * 60 * 60 * 24 * 1000,
-      sameSite: 'strict',
-      secure: false,
-    });
+    response.cookie('refresh_token', refreshToken, this.cookieOptions);
 
     return response.send({
       success: true,

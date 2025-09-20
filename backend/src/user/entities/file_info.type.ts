@@ -1,4 +1,4 @@
 export interface FileInfo {
   name: string;
-  ext: string;
+  extension: string;
 }

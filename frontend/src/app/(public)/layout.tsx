@@ -3,7 +3,6 @@ import RootLoading from "@/components/RootLoading";
 import { useAuth } from "@/api_client/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import PrivateHeader from "@/components/PrivateHeader";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
 	const { isAuthenticated, loading } = useAuth();
@@ -15,12 +14,11 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 		}
 	}, [isAuthenticated, loading, router]);
 
+	console.log("[PUBLIC LAYOUT] REDERENRING....");
+
 	if (loading) return <RootLoading />;
 
-	return (
-		<main>
-			<PrivateHeader />
-			{children}
-		</main>
-	);
+	if (isAuthenticated) return null;
+
+	return <main>{children}</main>;
 }

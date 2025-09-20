@@ -5,10 +5,10 @@ import { MESSAGE_DTO } from 'src/ai/entities/message.dto';
 import { Message } from 'src/ai/entities/message.entity';
 import { RegisterDTO } from 'src/auth/entities/register.dto';
 import { File } from 'src/user/entities/file.entity';
+import { FileInfo } from 'src/user/entities/file_info.type';
 import { Token } from 'src/user/entities/tokens.entity';
 import { User } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
-import { InsertResult } from 'typeorm/browser';
 
 @Injectable()
 export class DatabaseService {
@@ -105,7 +105,7 @@ export class DatabaseService {
     return await this.messageRepo.save(newMessage);
   }
 
-  async saveFiles(files: Partial<File>[]): Promise<InsertResult> {
+  async saveFiles(files: Partial<File>[]) {
     return await this.fileRepo.insert(files);
   }
 
@@ -152,5 +152,21 @@ export class DatabaseService {
         createdAt: 'ASC',
       },
     });
+  }
+
+  async getUserFileById(userId: number, fileId: number) {
+    return await this.fileRepo.findOne({
+      where: {
+        user_id: userId,
+        id: fileId,
+      },
+    });
+  }
+
+  async updateFiles(file: FileInfo) {
+    return await this.fileRepo.update(
+      { filename: file.name },
+      { is_summarized: true },
+    );
   }
 }

@@ -7,7 +7,7 @@ import * as fs from 'fs';
 import PdfParse from 'pdf-parse';
 import path from 'path';
 import { FileInfo } from 'src/user/entities/file_info.type';
-import { EXT } from './entities/ext.enum';
+import { EXTENSTION } from './entities/ext.enum';
 import WordExtractor from 'word-extractor';
 
 interface AI_MESSAGE {
@@ -29,7 +29,7 @@ export class AIService {
   async semanticSearch(messages: Message[] | null, query: string) {
     const context: AI_MESSAGE[] = this.getContext(messages, query);
 
-    console.log(context);
+    console.log('AI Context', context);
 
     try {
       const response = await this.AI.chat.completions.create({
@@ -47,7 +47,6 @@ export class AIService {
           ...context,
         ],
         temperature: 0.2,
-        max_completion_tokens: 150,
         stream: true,
       });
 
@@ -90,21 +89,21 @@ export class AIService {
     let content: string = '';
     const file_path = path.join(__dirname, '../../uploads', fileInfo.name);
 
-    switch (fileInfo.ext as EXT) {
-      case EXT.PDF: {
+    switch (fileInfo.extension as EXTENSTION) {
+      case EXTENSTION.PDF: {
         const dataBuffer = fs.readFileSync(file_path);
         const pdfData = await PdfParse(dataBuffer as Buffer<ArrayBufferLike>);
         content = pdfData.text;
         break;
       }
-      case EXT.DOCX:
-      case EXT.DOC: {
+      case EXTENSTION.DOCX:
+      case EXTENSTION.DOC: {
         const wordExtrator = new WordExtractor();
         const extracted = await wordExtrator.extract(file_path);
         content = extracted.getBody();
         break;
       }
-      case EXT.TXT: {
+      case EXTENSTION.TXT: {
         fs.readFile(file_path, 'utf-8', (err, data) => {
           if (err) {
             console.error('Error reading file', err);

@@ -37,7 +37,7 @@ export class AuthGuard implements CanActivate {
 
     try {
       const decode: EXTRACTED_JWT_PAYLOAD = this.jwtService.verify(token, {
-        secret: this.configService.getOrThrow('JWT_KEY'),
+        secret: this.configService.getOrThrow('JWT_ACCESS_KEY'),
       });
 
       /** Only if the user logout out */
@@ -55,7 +55,7 @@ export class AuthGuard implements CanActivate {
       } else if (error instanceof NotBeforeError) {
         throw new ForbiddenException('JWT Token Not Active Yet', error.message);
       }
-      throw new UnauthorizedException('Auth Failed');
+      throw new UnauthorizedException('Auth Failed', (error as Error).message);
     }
 
     return true;

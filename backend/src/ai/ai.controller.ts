@@ -23,7 +23,7 @@ export class AIController {
 
   @Get('/ask')
   async askAI(
-    @Query(new ValidationPipe())
+    @Query(ValidationPipe)
     query: QUESTION_DTO,
     @Res() response: Response,
   ) {

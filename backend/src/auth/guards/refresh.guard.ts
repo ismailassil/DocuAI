@@ -54,6 +54,8 @@ export class RefreshGuard implements CanActivate {
   private isValidToken(tokenInfo: Token | null, exp: number) {
     if (!tokenInfo) throw new UnauthorizedException('Refresh Token Not Found');
 
+    console.log('TokenInfo');
+    console.log(tokenInfo);
     if (tokenInfo.is_used === true) {
       throw new UnauthorizedException('Unauthorized usage of token');
     } else if (new Date(exp).getTime() > new Date().getTime()) {

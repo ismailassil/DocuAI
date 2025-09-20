@@ -22,6 +22,9 @@ export class File {
   @Column()
   summarized_filename: string;
 
+  @Column({ type: 'boolean', default: false })
+  is_summarized: boolean;
+
   @ManyToOne(() => User, (user) => user.files)
   @JoinColumn({ name: 'user_id' })
   user: User;

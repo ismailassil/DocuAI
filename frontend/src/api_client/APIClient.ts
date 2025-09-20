@@ -47,9 +47,10 @@ export class APIClient {
 			async (error) => {
 				// Resend another request to refresh the accessToken
 				const prevRequest = error?.config;
-				if (error?.response.status === 403 && !prevRequest?.sent) {
+				if (error?.status === 403 && !prevRequest?.sent) {
 					prevRequest.sent = true;
 					const { token } = await this.refresh();
+					this.setAccessToken(token);
 					prevRequest.headers.Authorization = `Bearer ${token}`;
 					return this.client(prevRequest);
 				}
@@ -65,10 +66,9 @@ export class APIClient {
 				{},
 				{ withCredentials: true },
 			);
-			console.log(res.data);
+			console.log("[refresh]", res.data);
 			return { token: res.data.token, userData: res.data.data };
 		} catch (error) {
-			console.log("Refresh Token", error);
 			this.clearAccessToken();
 			throw error;
 		}

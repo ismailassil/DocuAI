@@ -1,4 +1,4 @@
-export enum EXT {
+export const enum EXTENSTION {
   PDF = 'application/pdf',
   DOC = 'application/msword',
   DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',

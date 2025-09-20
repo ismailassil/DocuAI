@@ -8,8 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import axios from "axios";
 import { toast } from "sonner";
+import { useAuth } from "@/api_client/AuthContext";
+import { AxiosError } from "axios";
 
 export default function FileUpload({ setShow }: { setShow: () => void }) {
 	const [files, setFiles] = React.useState<File[]>([]);
@@ -24,24 +25,40 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 			"text/plain": [".txt"],
 		},
 	});
+	const { axiosPrivate } = useAuth();
 
-	async function handleSubmit() {
+	async function handleSubmit(
+		e: React.FormEvent<HTMLFormElement> | React.FormEvent<HTMLButtonElement>,
+	) {
+		e.preventDefault();
+
 		if (files.length === 0) return;
 
 		const formData = new FormData();
-		files.forEach((file) => formData.append("files", file));
+		files.forEach((file) => formData.append("docs", file));
+		console.log(files);
+		console.log(formData);
 
 		try {
-			const res = await axios.post("http://localhost:8008/user/upload", formData);
+			const res = await axiosPrivate.post("/user/upload", formData, {
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
 			console.log(res);
 			toast.info("SUCCESS", {
 				position: "top-center",
 			});
 		} catch (error) {
-			console.log(error);
-			toast.error("ERROR", {
-				position: "top-center",
-			});
+			console.error(error);
+			toast.error(
+				"ERROR: " + (error as AxiosError<{ message: string }>).response?.data.message,
+				{
+					position: "top-center",
+				},
+			);
+		} finally {
+			setShow();
 		}
 	}
 
@@ -53,6 +70,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 						type="button"
 						variant="ghost"
 						size="icon"
+						className="cursor-pointer"
 						aria-label="Remove file"
 						onClick={() =>
 							setFiles((prevFiles) =>
@@ -68,10 +86,12 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 						<File className="h-5 w-5 text-foreground" aria-hidden={true} />
 					</span>
 					<div>
-						<p className="font-medium text-foreground">
+						<p className="font-medium text-sm text-foreground">
 							{file.name.length > 25 ? file.name.slice(0, 25) + "..." : file.name}
 						</p>
-						<p className="mt-0.5 text-sm text-muted-foreground">{file.size} bytes</p>
+						<p className="mt-0.5 text-xs text-muted-foreground">
+							{(file.size / (1024 * 1024)).toFixed(2)} MB
+						</p>
 					</div>
 				</CardContent>
 			</Card>
@@ -101,16 +121,16 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 										isDragActive
 											? "border-primary bg-primary/10 ring-2 ring-primary/20"
 											: "border-border",
-										"mt-2 flex justify-center rounded-md border border-dashed px-6 py-20 transition-colors duration-200",
+										"mt-2 flex justify-center rounded-md border border-dashed px-6 py-8 transition-colors duration-200",
 									)}
 								>
 									<div>
 										<File
-											className="mx-auto h-12 w-12 text-muted-foreground/80"
+											className="mx-auto h-10 w-10 text-muted-foreground/80"
 											aria-hidden={true}
 										/>
-										<div className="mt-4 flex text-muted-foreground">
-											<p>Drag and drop or</p>
+										<div className="mt-4 flex text-sm text-muted-foreground">
+											<span>Drag and drop or</span>
 											<label
 												htmlFor="file"
 												className="relative cursor-pointer rounded-sm pl-1 font-medium text-primary hover:text-primary/80 hover:underline hover:underline-offset-4"
@@ -121,10 +141,10 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 													id="file-upload"
 													name="file-upload"
 													type="file"
-													className="sr-only"
+													className="sr-only inline-block"
 												/>
 											</label>
-											<p className="pl-1">to upload</p>
+											<span className="pl-1">to upload</span>
 										</div>
 										<p className="text-xs text-center text-muted-foreground/80">
 											Allowed documents: <code>pdf</code>, <code>docx</code>,{" "}
