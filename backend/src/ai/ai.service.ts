@@ -33,6 +33,7 @@ export class AIService {
 
     try {
       const response = await this.AI.chat.completions.create({
+        // transforms: ['middle-out'],
         model: this.configService.getOrThrow('DEEPSEEK_MODEL'),
         messages: [
           {
@@ -80,6 +81,7 @@ export class AIService {
 
       return response;
     } catch (error) {
+      console.error('Error Analyzing');
       console.error(error);
       throw error;
     }

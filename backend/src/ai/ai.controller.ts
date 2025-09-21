@@ -12,6 +12,7 @@ import type { Response } from 'express';
 import { DatabaseService } from 'src/database/database.service';
 import { QUESTION_DTO } from './entities/question.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
+import { MODEL_DTO } from './entities/model.dto';
 
 @UseGuards(AuthGuard)
 @Controller('ai')
@@ -25,7 +26,10 @@ export class AIController {
   async askAI(
     @Query(ValidationPipe)
     query: QUESTION_DTO,
-    @Res() response: Response,
+    @Query(ValidationPipe)
+    model: MODEL_DTO,
+    @Res()
+    response: Response,
   ) {
     /**  Let the client know that the incoming response will be an SSE (server-sent events)
      *   a continuous stream of data sent from the server
@@ -43,6 +47,9 @@ export class AIController {
      * Send the header immediately
      */
     response.flushHeaders();
+
+    console.log(query.question);
+    console.log(model);
 
     const user = await this.databaseService.getUserById(1);
     if (!user) throw new NotFoundException('User Not Found');

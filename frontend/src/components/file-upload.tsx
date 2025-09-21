@@ -17,7 +17,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop: (acceptedFiles) => setFiles(acceptedFiles),
 		maxFiles: 5,
-		maxSize: 10000000,
+		maxSize: 3 * 1024 * 1024,
 		accept: {
 			"application/pdf": [".pdf"],
 			"application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
@@ -154,7 +154,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 								</div>
 								<div className="mt-2 text-sm flex flex-col text-muted-foreground">
 									<p>All file types are allowed to upload.</p>
-									<p>Max Size per file: 10MB</p>
+									<p>Max size per file: 3MB</p>
 								</div>
 								{filesList.length > 0 && (
 									<>

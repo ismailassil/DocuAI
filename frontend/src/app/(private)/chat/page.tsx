@@ -10,6 +10,7 @@ import { Bot, User, SendHorizonal } from "lucide-react";
 import { toast } from "sonner";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { useAuth } from "@/api_client/AuthContext";
+import { ModelNames, Navbar } from "@/components/ui/shadcn-io/navbar-13";
 
 type MessageType = {
 	role: "user" | "assistant";
@@ -18,6 +19,7 @@ type MessageType = {
 };
 
 export default function ChatAssistant() {
+	const [model, setModel] = useState<ModelNames>("deepseek/deepseek-chat-v3.1:free");
 	const [messages, setMessages] = useState<MessageType[]>([
 		{
 			role: "assistant",
@@ -43,12 +45,8 @@ export default function ChatAssistant() {
 				if (res.data.length !== 0) {
 					setMessages(res.data);
 				}
-				console.log(res.data);
 			} catch (error) {
-				console.log(error);
-				toast.error("Error - History fetching", {
-					position: "top-center",
-				});
+				toast.error("Error - History fetching " + (error as Error).message);
 			} finally {
 				setIsHistory(false);
 			}
@@ -75,17 +73,24 @@ export default function ChatAssistant() {
 		setIsStreaming(true);
 		try {
 			let newMessage: string = "";
-			await axiosPrivate.get("/ai/ask?question=" + encodeURIComponent(trimmedInput), {
+			await axiosPrivate.get("/ai/ask", {
+				params: {
+					question: trimmedInput,
+					model,
+				},
 				responseType: "stream",
 				onDownloadProgress(progressEvent) {
-					setIsStreaming(false);
 					const chunk = progressEvent.event.originalTarget.response;
-					newMessage = chunk;
-					setStreamedMessage(chunk);
-					console.log(progressEvent.event.originalTarget.response);
+					if (chunk && !isErrorResponse(chunk)) {
+						setIsStreaming(false);
+						newMessage = chunk;
+						setStreamedMessage(chunk);
+						console.log(chunk);
+					}
 				},
 				timeout: 3 * 60 * 1000,
 			});
+
 			setMessages((prev) => [
 				...prev,
 				{ role: "assistant", message: newMessage, createAt: new Date() },
@@ -94,8 +99,7 @@ export default function ChatAssistant() {
 				position: "top-center",
 			});
 		} catch (error) {
-			toast.error("ERROR FOUND");
-			console.log(error);
+			toast.error("Error " + (error as Error).message);
 		} finally {
 			setIsStreaming(false);
 			setStreamedMessage("");
@@ -103,12 +107,26 @@ export default function ChatAssistant() {
 		}
 	};
 
+	function isErrorResponse(chunk: string) {
+		try {
+			const content = JSON.parse(chunk);
+
+			return content.statusCode && content.error;
+		} catch {
+			return false;
+		}
+	}
+
 	const handleKeyPress = (e: React.KeyboardEvent) => {
 		if (e.key === "Enter" && !e.shiftKey) {
 			e.preventDefault();
 			handleSendMessage();
 		}
 	};
+
+	function handleChangeModle(model: string) {
+		setModel(model as ModelNames);
+	}
 
 	return (
 		<div className="min-h-[calc(100vh-65px)] max-h-[calc(100vh-65px)] bg-background flex flex-col">
@@ -212,29 +230,34 @@ export default function ChatAssistant() {
 					</div>
 
 					{/* Input Area */}
-					<div className="p-4 border-t flex-shrink-0">
-						<div className="flex gap-2">
-							<Input
-								ref={inputRef}
-								value={input}
-								onChange={(e) => setInput(e.target.value)}
-								onKeyPress={handleKeyPress}
-								placeholder="Ask me anything about your documents..."
-								disabled={isStreaming}
-								className="flex-1 placeholder:text-gray-500 ring-1 ring-gray-300"
-							/>
-							<Button
-								onClick={handleSendMessage}
-								disabled={!input.trim() || isStreaming}
-								size="icon"
-							>
-								<SendHorizonal className="h-4 w-4" />
-							</Button>
+					<div className="px-4 pt-4 border-t flex-shrink-0">
+						<div className="w-full">
+							<div className="flex gap-2">
+								<Input
+									ref={inputRef}
+									value={input}
+									onChange={(e) => setInput(e.target.value)}
+									onKeyPress={handleKeyPress}
+									placeholder="Ask me anything about your documents..."
+									disabled={isStreaming}
+									className="flex-1 placeholder:text-gray-500 ring-1 ring-gray-300"
+								/>
+								<div className="relative">
+									<Navbar onModelChange={handleChangeModle} />
+								</div>
+								<Button
+									onClick={handleSendMessage}
+									disabled={!input.trim() || isStreaming}
+									size="icon"
+								>
+									<SendHorizonal className="h-4 w-4" />
+								</Button>
+							</div>
 						</div>
-						<p className="text-xs text-gray-600 mt-2">
-							Press Enter to send, Shift+Enter for new line
-						</p>
 					</div>
+					<p className="px-4 pb-4 text-xs text-gray-600 mt-2">
+						Press Enter to send, Shift+Enter for new line
+					</p>
 				</Card>
 			</div>
 		</div>

@@ -51,7 +51,7 @@ export class UserController {
         },
       }),
       limits: {
-        fileSize: 1024 * 1024 * 10,
+        fileSize: 1024 * 1024 * 3,
       },
     }),
   )
@@ -134,23 +134,18 @@ export class UserController {
     const token: string = request['token'] as string;
     const refreshToken = request.cookies['refresh_token'] as string;
 
-    console.log('-----------------1');
     const tokenInfo = await this.databaseService.getTokenInfo(refreshToken);
 
-    console.log('-----------------2');
     if (tokenInfo) {
       await this.databaseService.updateTokenInfo({
         ...tokenInfo,
         is_used: true,
       });
     }
-    console.log('-----------------3');
 
     await this.cacheManager.set(`blacklist:${token}`, 'isBlacklisted');
-    console.log('-----------------4');
     response.clearCookie('refresh_token');
 
-    console.log('-----------------5');
     response.send({ success: true });
   }
 }

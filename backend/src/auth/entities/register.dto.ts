@@ -25,4 +25,8 @@ export class RegisterDTO {
   @IsString()
   @Length(8, 25, { message: 'Username must be between 8 and 25 characters' })
   public readonly password: string;
+
+  constructor(user: RegisterDTO) {
+    Object.assign(this, user);
+  }
 }

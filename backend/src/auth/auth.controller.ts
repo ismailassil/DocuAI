@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  ForbiddenException,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -16,17 +19,25 @@ import { RegisterDTO } from './entities/register.dto';
 import { RefreshGuard } from './guards/refresh.guard';
 import { Token } from 'src/user/entities/tokens.entity';
 import { JWT_PAYLOAD } from './entities/jwt.payload';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('auth')
 export class AuthController {
-  private cookieOptions: CookieOptions = {
+  private readonly FRONT_URL: string;
+  private readonly cookieOptions: CookieOptions = {
     httpOnly: true,
     maxAge: 8 * 60 * 60 * 24 * 1000,
     sameSite: 'lax',
     secure: false,
     path: '/',
   };
-  constructor(private authService: AuthService) {}
+
+  constructor(
+    private authService: AuthService,
+    private configService: ConfigService,
+  ) {
+    this.FRONT_URL = this.configService.getOrThrow('FRONT_URL');
+  }
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
@@ -93,5 +104,53 @@ export class AuthController {
       token: accessToken,
       data,
     });
+  }
+
+  /**
+   * Google Auth Endpoint
+   */
+  @Get('google')
+  async authGoogle(@Res() response: Response) {
+    const redirectUrl = await this.authService.getGoogleAuthURL();
+
+    return response.send(redirectUrl);
+  }
+
+  /**
+   * Callback endpoint used after user confirmation.
+   * Will be used by google to redirect after confirmation.
+   *
+   * This endpoint will retrieve the tokens and user
+   * info to proceed the validation
+   */
+  @Get('google/callback')
+  async authGoogleCallback(
+    @Res() res: Response,
+    @Query('code') code: string,
+    @Query('state') state: string,
+  ) {
+    if (!(await this.authService.isValidState(state))) {
+      throw new ForbiddenException('Invalid State');
+    }
+
+    try {
+      const { access_token, id_token } =
+        await this.authService.getGoogleTokens(code);
+
+      const userInfo = await this.authService.getUserInfo(
+        access_token,
+        id_token,
+      );
+
+      const { accessToken, refreshToken } =
+        await this.authService.validateUserAuth(userInfo);
+
+      res.cookie('refresh_token', refreshToken, this.cookieOptions);
+      res.setHeader('Authorization', 'Bearer ' + accessToken);
+    } catch {
+      res.redirect(this.FRONT_URL);
+    }
+
+    res.redirect(this.FRONT_URL + '/dashboard');
   }
 }

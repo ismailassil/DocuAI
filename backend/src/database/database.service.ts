@@ -35,6 +35,12 @@ export class DatabaseService {
     });
   }
 
+  getUserByEmail(email: string) {
+    return this.userRepo.findOne({
+      where: { email: email },
+    });
+  }
+
   findUserByUsernameOrEmail(
     username: string,
     email: string,
@@ -149,7 +155,7 @@ export class DatabaseService {
       take: max,
       skip: limit,
       order: {
-        createdAt: 'ASC',
+        createdAt: 'DESC',
       },
     });
   }

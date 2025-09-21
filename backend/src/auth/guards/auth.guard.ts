@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   CanActivate,
   ExecutionContext,
   ForbiddenException,
@@ -30,7 +31,7 @@ export class AuthGuard implements CanActivate {
     const auth = request.headers['authorization'];
 
     if (!auth || typeof auth !== 'string') {
-      throw new UnauthorizedException('Access Token missing');
+      throw new BadRequestException('Authorization header is required');
     }
 
     const token: string = auth.replace(`Bearer `, '');
@@ -42,20 +43,25 @@ export class AuthGuard implements CanActivate {
 
       /** Only if the user logout out */
       const cachedData = await this.cacheManager.get(`blacklist:${token}`);
-      if (cachedData) throw new Error('Blacklisted Token');
+      if (cachedData) {
+        throw new UnauthorizedException('Token has been invalidated');
+      }
 
       request['token'] = token;
       request['user'] = decode;
     } catch (error) {
       console.error('Error JWT', error);
       if (error instanceof TokenExpiredError) {
-        throw new ForbiddenException('JWT NOT VALID', error.message);
+        throw new UnauthorizedException('JWT NOT VALID', error.message);
       } else if (error instanceof JsonWebTokenError) {
         throw new UnauthorizedException('Invalid Token', error.message);
       } else if (error instanceof NotBeforeError) {
-        throw new ForbiddenException('JWT Token Not Active Yet', error.message);
+        throw new UnauthorizedException(
+          'JWT Token Not Active Yet',
+          error.message,
+        );
       }
-      throw new UnauthorizedException('Auth Failed', (error as Error).message);
+      throw new ForbiddenException('Auth Failed', (error as Error).message);
     }
 
     return true;

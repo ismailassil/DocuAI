@@ -1,4 +1,10 @@
 import axios, { AxiosInstance } from "axios";
+import { User } from "./AuthContext";
+
+export interface REFRESH_DATA {
+	token: string;
+	userData: User;
+}
 
 export class APIClient {
 	public client: AxiosInstance;
@@ -47,11 +53,14 @@ export class APIClient {
 			async (error) => {
 				// Resend another request to refresh the accessToken
 				const prevRequest = error?.config;
-				if (error?.status === 403 && !prevRequest?.sent) {
-					prevRequest.sent = true;
+
+				if (error?.status === 401 && !prevRequest?._retry) {
+					prevRequest._retry = true;
+
 					const { token } = await this.refresh();
-					this.setAccessToken(token);
 					prevRequest.headers.Authorization = `Bearer ${token}`;
+
+					this.setAccessToken(token);
 					return this.client(prevRequest);
 				}
 				return Promise.reject(error);
