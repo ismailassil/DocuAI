@@ -104,7 +104,7 @@ export class AuthService {
   }
 
   public signJWT(isRefresh: boolean, payload: JWT_PAYLOAD) {
-    const expiresIn = isRefresh ? '7d' : '10s';
+    const expiresIn = isRefresh ? '7d' : '5m';
     const key_name = isRefresh ? 'JWT_REFRESH_KEY' : 'JWT_ACCESS_KEY';
 
     return this.jwtService.sign(

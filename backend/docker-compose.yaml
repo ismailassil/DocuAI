@@ -12,3 +12,11 @@ services:
       - 5432:5432
     env_file:
       - .env.postgres
+
+  postgreAdmin:
+    image: dpage/pgadmin4:9.8.0
+    container_name: postgres-admin
+    ports:
+      - 80:80
+    env_file:
+      - .env.postgres

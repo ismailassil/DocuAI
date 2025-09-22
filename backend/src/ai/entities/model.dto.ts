@@ -15,5 +15,5 @@ export class MODEL_DTO {
   @IsEnum(ModelNames, {
     message: 'modelName must be a valid model identifier',
   })
-  model: string;
+  model: ModelNames;
 }

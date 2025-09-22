@@ -147,13 +147,13 @@ export class DatabaseService {
     return this.tokenRepo.save(entity);
   }
 
-  async getUserFiles(userId: number, max: number, limit: number) {
+  async getUserFiles(userId: number, max: number, skip: number) {
     return await this.fileRepo.find({
       where: {
         user_id: userId,
       },
       take: max,
-      skip: limit,
+      skip: skip,
       order: {
         createdAt: 'DESC',
       },
@@ -163,8 +163,8 @@ export class DatabaseService {
   async getUserFileById(userId: number, fileId: number) {
     return await this.fileRepo.findOne({
       where: {
-        user_id: userId,
         id: fileId,
+        user_id: userId,
       },
     });
   }

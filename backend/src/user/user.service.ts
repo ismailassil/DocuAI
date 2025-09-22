@@ -78,7 +78,8 @@ export class UserService {
   }
 
   async isValidFileOwnership(fileId: number, userId: number) {
-    const fileInfo = await this.databaseService.getUserFileById(fileId, userId);
+    const fileInfo = await this.databaseService.getUserFileById(userId, fileId);
+
     if (!fileInfo) throw new ForbiddenException('Not Owner of file');
     return fileInfo;
   }

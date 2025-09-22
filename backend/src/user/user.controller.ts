@@ -8,11 +8,13 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
   Req,
   Res,
   UploadedFiles,
   UseGuards,
   UseInterceptors,
+  ValidationPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
@@ -27,6 +29,7 @@ import { FileDTO } from './entities/file.dto';
 import { createReadStream } from 'fs';
 import { join } from 'path';
 import fs from 'fs';
+import { GET_FILES_DTO } from './entities/getfiles.dto';
 
 @UseGuards(AuthGuard)
 @Controller('user')
@@ -88,6 +91,34 @@ export class UserController {
         (file) => new FileDTO(file, file.original_name),
       ),
       summarizedFiles: filesInfo.map(
+        (file) => new FileDTO(file, file.summarized_filename),
+      ),
+    };
+  }
+
+  @Get('files')
+  async getFiles(
+    @Req() req: Request,
+    @Query(new ValidationPipe({ transform: true })) { page }: GET_FILES_DTO,
+  ) {
+    const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
+
+    const take = 7;
+    const skip = (page - 1) * 7;
+
+    console.log({ take }, { skip });
+
+    const filesInfo = await this.databaseService.getUserFiles(
+      user.sub,
+      take,
+      skip,
+    );
+    if (!filesInfo || filesInfo.length === 0) {
+      throw new NotFoundException('No Files Found');
+    }
+
+    return {
+      files: filesInfo.map(
         (file) => new FileDTO(file, file.summarized_filename),
       ),
     };

@@ -50,7 +50,10 @@ export class AuthGuard implements CanActivate {
       request['token'] = token;
       request['user'] = decode;
     } catch (error) {
+      console.error('======================================');
       console.error('Error JWT', error);
+      console.error('======================================');
+
       if (error instanceof TokenExpiredError) {
         throw new UnauthorizedException('JWT NOT VALID', error.message);
       } else if (error instanceof JsonWebTokenError) {

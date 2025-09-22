@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import OpenAI from 'openai';
 import { Message } from './entities/message.entity';
 import { AI_ROLES } from './entities/ai_role.enum';
@@ -9,6 +9,7 @@ import path from 'path';
 import { FileInfo } from 'src/user/entities/file_info.type';
 import { EXTENSTION } from './entities/ext.enum';
 import WordExtractor from 'word-extractor';
+import { ModelNames } from './entities/model.dto';
 
 interface AI_MESSAGE {
   role: AI_ROLES;
@@ -26,15 +27,19 @@ export class AIService {
     });
   }
 
-  async semanticSearch(messages: Message[] | null, query: string) {
+  async semanticSearch(
+    model: ModelNames,
+    messages: Message[] | null,
+    query: string,
+  ) {
     const context: AI_MESSAGE[] = this.getContext(messages, query);
 
+    const modelENV = this.getModelENV(model);
     console.log('AI Context', context);
 
     try {
       const response = await this.AI.chat.completions.create({
-        // transforms: ['middle-out'],
-        model: this.configService.getOrThrow('DEEPSEEK_MODEL'),
+        model: this.configService.getOrThrow(modelENV),
         messages: [
           {
             role: 'system',
@@ -136,5 +141,26 @@ export class AIService {
     returnContext.push(userContext);
 
     return returnContext;
+  }
+
+  getModelENV(model: ModelNames) {
+    switch (model) {
+      case ModelNames.DEEPSEEK_CHAT:
+        return 'DEEPSEEK_MODEL';
+      case ModelNames.GLM_4_5_AIR:
+        return 'GLM_MODEL';
+      case ModelNames.GROK_4_FAST:
+        return 'GROK_MODEL';
+      case ModelNames.KIMI_K2:
+        return 'KIMI_MODEL';
+      case ModelNames.NEMOTRON_NANO:
+        return 'NVIDIA_MODEL';
+      case ModelNames.OPENAI_GPT_OSS:
+        return 'OPENAI_MODEL';
+      default:
+        throw new NotFoundException(
+          'Model Not Found | Selected by user' + (model as string),
+        );
+    }
   }
 }
