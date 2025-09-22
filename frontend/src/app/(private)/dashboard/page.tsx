@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Bot, ChevronRight, Files } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import FileUpload from "@/components/file-upload";
 import { useAuth } from "@/api_client/AuthContext";
 import { toast } from "sonner";
@@ -25,24 +25,25 @@ export default function Dashboard() {
 	const [showUpload, setShowUpload] = useState(false);
 	const { axiosPrivate } = useAuth();
 
-	useEffect(() => {
-		async function getRecentFiles() {
-			try {
-				const res = await axiosPrivate.get<{
-					originalFiles: File[];
-					summarizedFiles: File[];
-				}>("/user/recent-files");
-				console.log(res.data);
-				toast.info("Files Found");
-				setOrgFiles(res.data.originalFiles);
-				setSumFiles(res.data.summarizedFiles);
-			} catch (error) {
-				toast.error((error as AxiosError<{ message: string }>).response?.data.message);
-				console.log(error);
-			}
+	const getRecentFiles = useCallback(async () => {
+		try {
+			const res = await axiosPrivate.get<{
+				originalFiles: File[];
+				summarizedFiles: File[];
+			}>("/user/recent-files");
+			console.log(res.data);
+			toast.info("Files Found");
+			setOrgFiles(res.data.originalFiles);
+			setSumFiles(res.data.summarizedFiles);
+		} catch (error) {
+			toast.error((error as AxiosError<{ message: string }>).response?.data.message);
+			console.log(error);
 		}
-		getRecentFiles();
 	}, [axiosPrivate]);
+
+	useEffect(() => {
+		getRecentFiles();
+	}, [axiosPrivate, getRecentFiles]);
 
 	async function handleDownload(file: File) {
 		if (!file.is_summarized) return;
@@ -60,11 +61,11 @@ export default function Dashboard() {
 			linkAnchor.href = url;
 			linkAnchor.setAttribute("download", parsed?.parameters?.filename || "filename");
 			document.body.appendChild(linkAnchor);
-			
+
 			linkAnchor.click();
 			linkAnchor.remove();
 			window.URL.revokeObjectURL(url);
-			
+
 			toast.info("Downloading Successfull");
 		} catch (error) {
 			toast.error("Error while Downloading");
@@ -77,7 +78,10 @@ export default function Dashboard() {
 			{showUpload && (
 				<div className="bg-black/30 absolute backdrop-blur-sm h-screen w-full top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2">
 					<div className="size-full flex items-center justify-center">
-						<FileUpload setShow={() => setShowUpload(false)} />
+						<FileUpload
+							setShow={() => setShowUpload(false)}
+							refreshRecentFiles={getRecentFiles}
+						/>
 					</div>
 				</div>
 			)}

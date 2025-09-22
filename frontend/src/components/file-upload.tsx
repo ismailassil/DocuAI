@@ -12,7 +12,12 @@ import { toast } from "sonner";
 import { useAuth } from "@/api_client/AuthContext";
 import { AxiosError } from "axios";
 
-export default function FileUpload({ setShow }: { setShow: () => void }) {
+interface Props {
+	setShow: () => void;
+	refreshRecentFiles: () => void;
+}
+
+export default function FileUpload({ setShow, refreshRecentFiles }: Props) {
 	const [files, setFiles] = React.useState<File[]>([]);
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop: (acceptedFiles) => setFiles(acceptedFiles),
@@ -49,6 +54,7 @@ export default function FileUpload({ setShow }: { setShow: () => void }) {
 			toast.info("SUCCESS", {
 				position: "top-center",
 			});
+			refreshRecentFiles();
 		} catch (error) {
 			console.error(error);
 			toast.error(
