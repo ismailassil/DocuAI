@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { AxiosError } from "axios";
 import moment from "moment";
 import contentDisposition from "content-disposition";
+import { DataTable } from "@/components/filesTable/data-table";
+import { columns } from "@/components/filesTable/columns";
 
 export interface File {
 	id: number;
@@ -19,10 +21,26 @@ export interface File {
 	is_summarized: boolean;
 }
 
+export class TableFile {
+	id: number;
+	filename: string;
+	createdAt: Date;
+	isSummarized: "Success" | "Failed";
+
+	constructor(file: File) {
+		this.id = file.is_summarized === true ? file.id : -1;
+		this.filename = file.filename;
+		this.createdAt = file.createdAt;
+		this.isSummarized = file.is_summarized === true ? "Success" : "Failed";
+	}
+}
+
 export default function Dashboard() {
+	const [currentPage, setCurrentPage] = useState(1);
 	const [orgFiles, setOrgFiles] = useState<File[] | null>(null);
 	const [sumFiles, setSumFiles] = useState<File[] | null>(null);
 	const [showUpload, setShowUpload] = useState(false);
+	const [files, setFiles] = useState<TableFile[]>([]);
 	const { axiosPrivate } = useAuth();
 
 	const getRecentFiles = useCallback(async () => {
@@ -41,11 +59,82 @@ export default function Dashboard() {
 		}
 	}, [axiosPrivate]);
 
+	const getAllFiles = useCallback(
+		async (inputPage: number) => {
+			let n_page = currentPage;
+
+			if (inputPage === 0) {
+				n_page = 1;
+			} else if (inputPage === 1) {
+				console.log(n_page);
+				n_page++;
+				console.log(n_page);
+			} else if (inputPage === -1) {
+				n_page--;
+			} else {
+				return;
+			}
+
+			if (n_page <= 0) return;
+
+			try {
+				const res = await axiosPrivate.get<{ files: File[] }>("/user/files", {
+					params: {
+						page: n_page,
+					},
+				});
+
+				setFiles(res.data.files.map((file) => new TableFile(file)));
+				setCurrentPage(n_page);
+				toast.info("All Files FOUND");
+				console.log(res.data.files);
+			} catch (error) {
+				toast.error("All Files Not found");
+				console.log(error);
+			}
+		},
+		[axiosPrivate, currentPage],
+	);
+
 	useEffect(() => {
 		getRecentFiles();
-	}, [axiosPrivate, getRecentFiles]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
 
-	async function handleDownload(file: File) {
+	useEffect(() => {
+		getAllFiles(0);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []);
+
+	const handleFileDownload = useCallback(
+		async (id: number) => {
+			try {
+				const res = await axiosPrivate.get("/user/file/" + id);
+
+				const disposition = res.headers["content-disposition"];
+				const parsed = contentDisposition.parse(disposition);
+
+				const url = window.URL.createObjectURL(new Blob([res.data]));
+				const linkAnchor = document.createElement("a");
+
+				linkAnchor.href = url;
+				linkAnchor.setAttribute("download", parsed?.parameters?.filename || "filename");
+				document.body.appendChild(linkAnchor);
+
+				linkAnchor.click();
+				linkAnchor.remove();
+				window.URL.revokeObjectURL(url);
+
+				toast.info("Downloading Successfull");
+			} catch (error) {
+				toast.error("Error while Downloading");
+				console.error(error);
+			}
+		},
+		[axiosPrivate],
+	);
+
+	async function handleSummarizedFile(file: File) {
 		if (!file.is_summarized) return;
 
 		const { id } = file;
@@ -76,7 +165,7 @@ export default function Dashboard() {
 	return (
 		<div className="min-h-[calc(100vh-65px)] bg-background">
 			{showUpload && (
-				<div className="bg-black/30 absolute backdrop-blur-sm h-screen w-full top-1/2 -translate-x-1/2 left-1/2 -translate-y-1/2">
+				<div className="bg-black/30 absolute backdrop-blur-sm h-screen w-full top-1/2 z-10 -translate-x-1/2 left-1/2 -translate-y-1/2">
 					<div className="size-full flex items-center justify-center">
 						<FileUpload
 							setShow={() => setShowUpload(false)}
@@ -88,9 +177,11 @@ export default function Dashboard() {
 
 			<main className="container mx-auto px-4 py-8">
 				{/* Welcome Section */}
-				<div className="mb-8">
-					<h1 className="text-3xl font-bold text-foreground mb-2">Welcome back!</h1>
-					<p className="text-foreground/70">
+				<div className="mb-8 space-y-2">
+					<h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+						Welcome back!
+					</h1>
+					<p className="text-muted-foreground/70 text-xl">
 						Here&apos;s what&apos;s happening with your documents today.
 					</p>
 				</div>
@@ -137,10 +228,10 @@ export default function Dashboard() {
 							<CardDescription>Latest document processing activities</CardDescription>
 						</CardHeader>
 						{!orgFiles || orgFiles.length === 0 ? (
-							<CardContent className="space-y-4 size-full h-50">
+							<CardContent className="space-y-4 size-full">
 								<div className="h-full flex items-center justify-center">
-									<div className="text-center space-y-2 text-muted-foreground">
-										<Files className="inline-block" />
+									<div className="text-center space-y-1 text-sm text-muted-foreground">
+										<Files size={20} className="inline-block" />
 										<p>No files Found</p>
 									</div>
 								</div>
@@ -157,7 +248,11 @@ export default function Dashboard() {
 													: file.filename}
 											</p>
 											<p className="text-xs text-foreground/70">
-												{moment(file.createdAt).fromNow()}
+												{moment
+													.utc(file.createdAt)
+													.local()
+													.add(1, "hour")
+													.fromNow()}
 											</p>
 										</div>
 										<Badge variant="secondary">Success</Badge>
@@ -174,8 +269,8 @@ export default function Dashboard() {
 						{!sumFiles || sumFiles?.length === 0 ? (
 							<CardContent className="space-y-4 size-full">
 								<div className="h-full flex items-center justify-center">
-									<div className="text-center space-y-2 text-muted-foreground">
-										<Files className="inline-block" />
+									<div className="text-center space-y-1 text-sm text-muted-foreground">
+										<Files size={20} className="inline-block" />
 										<p>No files Found</p>
 									</div>
 								</div>
@@ -191,7 +286,11 @@ export default function Dashboard() {
 													: file.filename}
 											</p>
 											<p className="text-xs text-foreground/70">
-												{moment.utc(file.createdAt).fromNow()}
+												{moment
+													.utc(file.createdAt)
+													.local()
+													.add(1, "hour")
+													.fromNow()}
 											</p>
 										</div>
 										<div className="flex flex-col gap-1">
@@ -210,7 +309,7 @@ export default function Dashboard() {
 														? "pointer-events-none bg-gray-100 text-gray-400 cursor-not-allowed"
 														: "cursor-pointer bg-white text-black"
 												} w-full  hover:bg-gray-100 border-1 border-black/20`}
-												onClick={() => handleDownload(file)}
+												onClick={() => handleSummarizedFile(file)}
 											>
 												Download
 											</Badge>
@@ -220,6 +319,17 @@ export default function Dashboard() {
 							</CardContent>
 						)}
 					</Card>
+				</div>
+				<div className="container mx-auto pt-10 space-y-2">
+					<h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight first:mt-0">
+						Document Upload History
+					</h2>
+					<DataTable
+						columns={columns({ onDownload: handleFileDownload })}
+						data={files}
+						page={currentPage}
+						onPagination={getAllFiles}
+					/>
 				</div>
 			</main>
 		</div>

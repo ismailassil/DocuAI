@@ -1,4 +1,6 @@
-FINAL TASKS:
-- integrate the selected model with chat
-- Add all files section in the dashboard
-- Add select file to ask the ai about it
+# FINAL TASKS
+
+[X] Integrate the selected model with chat.
+[X] Add all files section in the dashboard.
+[ ] Add select file to ask the AI about it.
+[ ] Add loading state for files when analyzing the dashboard.
