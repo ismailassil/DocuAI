@@ -1,4 +1,5 @@
-import { IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsEnum, IsInt, IsNotEmpty, IsString, Min } from 'class-validator';
 
 export enum ModelNames {
   DEEPSEEK_CHAT = 'deepseek/deepseek-chat-v3.1:free',
@@ -16,4 +17,11 @@ export class MODEL_DTO {
     message: 'modelName must be a valid model identifier',
   })
   model: ModelNames;
+}
+
+export class FILEID_DTO {
+  @Type(() => Number)
+  @IsInt({ message: 'fileId must be an integer' })
+  @Min(1, { message: 'fileId must be at least 1' })
+  file_id: number;
 }

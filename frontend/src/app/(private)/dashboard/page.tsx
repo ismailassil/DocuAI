@@ -13,46 +13,38 @@ import moment from "moment";
 import contentDisposition from "content-disposition";
 import { DataTable } from "@/components/filesTable/data-table";
 import { columns } from "@/components/filesTable/columns";
-
-export interface File {
-	id: number;
-	filename: string;
-	createdAt: Date;
-	is_summarized: boolean;
-}
+import { File } from "@/lib/File";
+import FileCard from "@/components/FileCard";
 
 export class TableFile {
 	id: number;
 	filename: string;
 	createdAt: Date;
 	isSummarized: "Success" | "Failed";
+	isProcessed: boolean;
 
 	constructor(file: File) {
 		this.id = file.is_summarized === true ? file.id : -1;
 		this.filename = file.filename;
 		this.createdAt = file.createdAt;
 		this.isSummarized = file.is_summarized === true ? "Success" : "Failed";
+		this.isProcessed = file.is_processing;
 	}
 }
 
 export default function Dashboard() {
 	const [currentPage, setCurrentPage] = useState(1);
-	const [orgFiles, setOrgFiles] = useState<File[] | null>(null);
-	const [sumFiles, setSumFiles] = useState<File[] | null>(null);
+	const [files, setFiles] = useState<File[] | null>(null);
 	const [showUpload, setShowUpload] = useState(false);
-	const [files, setFiles] = useState<TableFile[]>([]);
+	const [allFiles, setAllFiles] = useState<TableFile[]>([]);
 	const { axiosPrivate } = useAuth();
 
 	const getRecentFiles = useCallback(async () => {
 		try {
-			const res = await axiosPrivate.get<{
-				originalFiles: File[];
-				summarizedFiles: File[];
-			}>("/user/recent-files");
-			console.log(res.data);
+			const res = await axiosPrivate.get<File[]>("/user/recent-files");
 			toast.info("Files Found");
-			setOrgFiles(res.data.originalFiles);
-			setSumFiles(res.data.summarizedFiles);
+			console.log(res.data);
+			setFiles(res.data);
 		} catch (error) {
 			toast.error((error as AxiosError<{ message: string }>).response?.data.message);
 			console.log(error);
@@ -66,9 +58,7 @@ export default function Dashboard() {
 			if (inputPage === 0) {
 				n_page = 1;
 			} else if (inputPage === 1) {
-				console.log(n_page);
 				n_page++;
-				console.log(n_page);
 			} else if (inputPage === -1) {
 				n_page--;
 			} else {
@@ -84,10 +74,9 @@ export default function Dashboard() {
 					},
 				});
 
-				setFiles(res.data.files.map((file) => new TableFile(file)));
+				setAllFiles(res.data.files.map((file) => new TableFile(file)));
 				setCurrentPage(n_page);
 				toast.info("All Files FOUND");
-				console.log(res.data.files);
 			} catch (error) {
 				toast.error("All Files Not found");
 				console.log(error);
@@ -169,7 +158,10 @@ export default function Dashboard() {
 					<div className="size-full flex items-center justify-center">
 						<FileUpload
 							setShow={() => setShowUpload(false)}
-							refreshRecentFiles={getRecentFiles}
+							refreshRecentFiles={() => {
+								getRecentFiles();
+								getAllFiles(currentPage - 1);
+							}}
 						/>
 					</div>
 				</div>
@@ -227,9 +219,9 @@ export default function Dashboard() {
 							<CardTitle>Recent Activity</CardTitle>
 							<CardDescription>Latest document processing activities</CardDescription>
 						</CardHeader>
-						{!orgFiles || orgFiles.length === 0 ? (
+						{!files || files.length === 0 ? (
 							<CardContent className="space-y-4 size-full">
-								<div className="h-full flex items-center justify-center">
+								<div className="flex items-center h-25 justify-center">
 									<div className="text-center space-y-1 text-sm text-muted-foreground">
 										<Files size={20} className="inline-block" />
 										<p>No files Found</p>
@@ -238,12 +230,12 @@ export default function Dashboard() {
 							</CardContent>
 						) : (
 							<CardContent className="space-y-4">
-								{orgFiles.map((file) => (
+								{files.map((file) => (
 									<div key={file.id} className="flex items-center gap-3">
 										<div className="w-1 h-full bg-secondary rounded-full"></div>
 										<div className="flex-1">
 											<p className="text-sm font-medium">
-												{file.filename.length > 40
+												{file?.filename?.length > 40
 													? file.filename.slice(0, 40) + "..."
 													: file.filename}
 											</p>
@@ -266,9 +258,9 @@ export default function Dashboard() {
 							<CardTitle>Recent Summarized files</CardTitle>
 							<CardDescription>Latest document processed by AI</CardDescription>
 						</CardHeader>
-						{!sumFiles || sumFiles?.length === 0 ? (
+						{!files || files?.length === 0 ? (
 							<CardContent className="space-y-4 size-full">
-								<div className="h-full flex items-center justify-center">
+								<div className="flex items-center h-25 justify-center">
 									<div className="text-center space-y-1 text-sm text-muted-foreground">
 										<Files size={20} className="inline-block" />
 										<p>No files Found</p>
@@ -277,44 +269,12 @@ export default function Dashboard() {
 							</CardContent>
 						) : (
 							<CardContent className="space-y-4">
-								{sumFiles.map((file) => (
-									<div key={file.id} className="flex items-center gap-3">
-										<div className="flex-1">
-											<p className="text-sm font-medium">
-												{file.filename.length > 40
-													? file.filename.slice(0, 40) + "..."
-													: file.filename}
-											</p>
-											<p className="text-xs text-foreground/70">
-												{moment
-													.utc(file.createdAt)
-													.local()
-													.add(1, "hour")
-													.fromNow()}
-											</p>
-										</div>
-										<div className="flex flex-col gap-1">
-											<Badge
-												variant={
-													file.is_summarized ? "secondary" : "destructive"
-												}
-												className="w-full"
-											>
-												{file.is_summarized ? "Success" : "Failed"}
-											</Badge>
-											<Badge
-												variant="secondary"
-												className={`${
-													!file.is_summarized
-														? "pointer-events-none bg-gray-100 text-gray-400 cursor-not-allowed"
-														: "cursor-pointer bg-white text-black"
-												} w-full  hover:bg-gray-100 border-1 border-black/20`}
-												onClick={() => handleSummarizedFile(file)}
-											>
-												Download
-											</Badge>
-										</div>
-									</div>
+								{files.map((file) => (
+									<FileCard
+										key={file.id}
+										file={file}
+										handleClick={handleSummarizedFile}
+									/>
 								))}
 							</CardContent>
 						)}
@@ -326,7 +286,7 @@ export default function Dashboard() {
 					</h2>
 					<DataTable
 						columns={columns({ onDownload: handleFileDownload })}
-						data={files}
+						data={allFiles}
 						page={currentPage}
 						onPagination={getAllFiles}
 					/>

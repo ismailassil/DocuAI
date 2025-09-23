@@ -31,16 +31,8 @@ export function HeroSection() {
 							size="lg"
 							className="bg-primary text-primary-foreground hover:bg-primary/90"
 						>
-							Start Free Trial
+							Get Started
 							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
-						<Button
-							size="lg"
-							variant="outline"
-							className="border-border bg-transparent"
-						>
-							<Play className="mr-2 h-4 w-4" />
-							Watch Demo
 						</Button>
 					</div>
 

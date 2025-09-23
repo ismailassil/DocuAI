@@ -2,5 +2,9 @@
 
 [X] Integrate the selected model with chat.
 [X] Add all files section in the dashboard.
-[ ] Add select file to ask the AI about it.
-[ ] Add loading state for files when analyzing the dashboard.
+[X] Add select file to ask the AI about it.
+[X] Add loading state for files when analyzing the dashboard.
+[X] Fix the loading state UI when uploading.
+[X] Fix Auth.
+[ ] Add the reason for the failed upload.
+[ ] Add display of summarized file.

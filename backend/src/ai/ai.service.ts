@@ -43,7 +43,9 @@ export class AIService {
         messages: [
           {
             role: 'system',
-            content: `You are a powerful search engine. 
+            content: `You are a powerful search engine. You are a Document Assistant that answer what the user wants
+              about a certain file will be promted to you as text, help the user get answers from the document, only from the document.
+              The document should be SELECTED by the user.
               For each user message, respond ONLY to the latest user message.
               Do NOT consider earlier messages unless the latest message explicitly mentions or references them.
               If the latest message does NOT mention any previous topic, 

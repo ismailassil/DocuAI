@@ -15,7 +15,6 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
 		}
 	}, [isAuthenticated, loading, router]);
 
-	console.log("[PRIVATE LAYOUT] REDERENRING....");
 	if (loading) return <RootLoading />;
 
 	if (!isAuthenticated) return null;

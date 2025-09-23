@@ -14,8 +14,6 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
 		}
 	}, [isAuthenticated, loading, router]);
 
-	console.log("[PUBLIC LAYOUT] REDERENRING....");
-
 	if (loading) return <RootLoading />;
 
 	if (isAuthenticated) return null;

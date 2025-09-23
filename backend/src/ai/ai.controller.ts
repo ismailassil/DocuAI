@@ -13,7 +13,7 @@ import type { Response } from 'express';
 import { DatabaseService } from 'src/database/database.service';
 import { QUESTION_DTO } from './entities/question.dto';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
-import { MODEL_DTO } from './entities/model.dto';
+import { FILEID_DTO, MODEL_DTO } from './entities/model.dto';
 import { EXTRACTED_JWT_PAYLOAD } from 'src/auth/entities/jwt.payload';
 
 @UseGuards(AuthGuard)
@@ -31,6 +31,8 @@ export class AIController {
     query: QUESTION_DTO,
     @Query(ValidationPipe)
     { model }: MODEL_DTO,
+    @Query(ValidationPipe)
+    { file_id }: FILEID_DTO,
     @Res()
     response: Response,
   ) {
@@ -57,9 +59,17 @@ export class AIController {
 
     const user = await this.databaseService.getUserById(retUser.sub);
     if (!user) throw new NotFoundException('User Not Found');
+    const fileInfo = await this.databaseService.getUserFileById(
+      user.id,
+      file_id,
+    );
+
+    if (!fileInfo) throw new NotFoundException('File Not Found');
 
     // parse the query to not exceed a certain length (200 characters)
-    const messages = await this.databaseService.getUserMessageContextByLimit(1);
+    const messages = await this.databaseService.getUserMessageContextByLimit(
+      user.id,
+    );
 
     const question = query.question.trim().slice(0, 500);
     const res = await this.aiService.semanticSearch(model, messages, question);

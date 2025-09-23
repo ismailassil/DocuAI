@@ -145,10 +145,11 @@ export class AuthController {
       const { accessToken, refreshToken } =
         await this.authService.validateUserAuth(userInfo);
 
+      res.clearCookie('refresh_token');
       res.cookie('refresh_token', refreshToken, this.cookieOptions);
       res.setHeader('Authorization', 'Bearer ' + accessToken);
     } catch {
-      res.redirect(this.FRONT_URL);
+      return res.redirect(this.FRONT_URL);
     }
 
     res.redirect(this.FRONT_URL + '/dashboard');

@@ -8,7 +8,7 @@ import { File } from 'src/user/entities/file.entity';
 import { FileInfo } from 'src/user/entities/file_info.type';
 import { Token } from 'src/user/entities/tokens.entity';
 import { User } from 'src/user/entities/user.entity';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 @Injectable()
 export class DatabaseService {
@@ -142,9 +142,23 @@ export class DatabaseService {
       expiresAt: futureDate,
     });
 
+    // Delete previous token
+    await this.tokenRepo.delete({
+      user: {
+        id: userInfo.id,
+      },
+    });
+
     const entity = this.tokenRepo.create(newToken);
 
-    return this.tokenRepo.save(entity);
+    const savedToken = await this.tokenRepo.save(entity);
+    console.log('----------------------------------------');
+    console.log('---------------------------------------- REGISTRATION');
+    console.log(savedToken);
+    console.log('----------------------------------------');
+    console.log('----------------------------------------');
+
+    return savedToken;
   }
 
   async getUserFiles(userId: number, max: number, skip: number) {
@@ -169,10 +183,17 @@ export class DatabaseService {
     });
   }
 
-  async updateFiles(file: FileInfo) {
+  async updateFiles(file: FileInfo, is_summarized: boolean = true) {
     return await this.fileRepo.update(
       { filename: file.name },
-      { is_summarized: true },
+      { is_summarized: is_summarized, is_processing: false },
     );
+  }
+
+  async getUserRelatedFilesByName(name: string, userId: number) {
+    return await this.fileRepo.findBy({
+      original_name: ILike(`%${name}%`),
+      user_id: userId,
+    });
   }
 }

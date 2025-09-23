@@ -1,5 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Search, FileText, Brain, Zap, Shield, Code } from "lucide-react"
+import { Search, FileText, Brain, Zap } from "lucide-react"
 
 const features = [
   {
@@ -23,16 +23,16 @@ const features = [
     title: "Lightning Fast",
     description: "Sub-second response times with optimized processing pipelines and global CDN.",
   },
-  {
-    icon: Shield,
-    title: "Enterprise Security",
-    description: "Bank-grade encryption, SOC 2 compliance, and GDPR-ready data handling.",
-  },
-  {
-    icon: Code,
-    title: "Developer First",
-    description: "RESTful APIs, comprehensive SDKs, and detailed documentation for rapid integration.",
-  },
+  // {
+  //   icon: Shield,
+  //   title: "Enterprise Security",
+  //   description: "Bank-grade encryption, SOC 2 compliance, and GDPR-ready data handling.",
+  // },
+  // {
+  //   icon: Code,
+  //   title: "Developer First",
+  //   description: "RESTful APIs, comprehensive SDKs, and detailed documentation for rapid integration.",
+  // },
 ]
 
 export function FeaturesSection() {
@@ -48,7 +48,7 @@ export function FeaturesSection() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((feature, index) => (
             <Card key={index} className="border-border bg-background hover:shadow-lg transition-shadow">
               <CardHeader>

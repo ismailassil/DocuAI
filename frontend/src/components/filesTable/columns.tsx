@@ -13,6 +13,7 @@ export type File = {
 	filename: string;
 	createdAt: Date;
 	isSummarized: "Success" | "Failed";
+	isProcessed: boolean;
 };
 
 interface FilesColumnsProps {
@@ -25,12 +26,19 @@ export const columns = ({ onDownload }: FilesColumnsProps): ColumnDef<File>[] =>
 		header: () => <div className="text-center">Summary</div>,
 		cell: ({ row }) => {
 			const value = row.getValue("isSummarized") as File["isSummarized"];
-			const isSuccess = value === "Success";
+			const isProcessed = row.original.isProcessed as boolean;
+			const text = (isProcessed && "Handling") || value;
 
 			return (
 				<div className="flex justify-center">
-					<Badge variant={isSuccess ? "secondary" : "destructive"} className="w-17">
-						{value}
+					<Badge
+						variant={
+							(isProcessed && "outline") ||
+							(value === "Success" ? "secondary" : "destructive")
+						}
+						className="w-17"
+					>
+						{text}
 					</Badge>
 				</div>
 			);

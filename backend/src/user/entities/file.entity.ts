@@ -25,6 +25,9 @@ export class File {
   @Column({ type: 'boolean', default: false })
   is_summarized: boolean;
 
+  @Column({ type: 'boolean', default: true })
+  is_processing: boolean;
+
   @ManyToOne(() => User, (user) => user.files)
   @JoinColumn({ name: 'user_id' })
   user: User;
@@ -34,6 +37,9 @@ export class File {
 
   @CreateDateColumn()
   createdAt: Date;
+
+  @Column({ nullable: true })
+  reason?: string;
 
   constructor(file: Partial<File>) {
     Object.assign(this, file);

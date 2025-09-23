@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { Spinner } from "@/components/ui/shadcn-io/spinner";
 import { useAuth } from "@/api_client/AuthContext";
 import { ModelNames, Navbar } from "@/components/ui/shadcn-io/navbar-13";
+import { ComboBox } from "@/components/ComboBox";
 
 type MessageType = {
 	role: "user" | "assistant";
@@ -20,6 +21,7 @@ type MessageType = {
 
 export default function ChatAssistant() {
 	const [model, setModel] = useState<ModelNames>("deepseek/deepseek-chat-v3.1:free");
+	const [selId, setSelId] = useState(-1);
 	const [messages, setMessages] = useState<MessageType[]>([
 		{
 			role: "assistant",
@@ -76,6 +78,7 @@ export default function ChatAssistant() {
 			await axiosPrivate.get("/ai/ask", {
 				params: {
 					question: trimmedInput,
+					file_id: selId,
 					model,
 				},
 				responseType: "stream",
@@ -85,7 +88,6 @@ export default function ChatAssistant() {
 						setIsStreaming(false);
 						newMessage = chunk;
 						setStreamedMessage(chunk);
-						console.log(chunk);
 					}
 				},
 				timeout: 3 * 60 * 1000,
@@ -230,7 +232,8 @@ export default function ChatAssistant() {
 					</div>
 
 					{/* Input Area */}
-					<div className="px-4 pt-4 border-t flex-shrink-0">
+					<div className="px-4 pt-4 space-y-3 border-t flex-shrink-0">
+						<ComboBox setValueId={setSelId} />
 						<div className="w-full">
 							<div className="flex gap-2">
 								<Input

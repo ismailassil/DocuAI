@@ -1,10 +1,10 @@
-import { Search } from "lucide-react"
+// import { Search } from "lucide-react"
 
 export function Footer() {
-  return (
-    <footer className="bg-card border-t border-border">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+	return (
+		<footer className="bg-card">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+				{/* <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
               <div className="flex items-center justify-center w-8 h-8 bg-accent rounded-lg">
@@ -68,12 +68,12 @@ export function Footer() {
               </li>
             </ul>
           </div>
-        </div>
+        </div> */}
 
-        <div className="border-t border-border mt-12 pt-8 text-center">
-          <p className="text-foreground/70">© 2024 DocuAI. All rights reserved.</p>
-        </div>
-      </div>
-    </footer>
-  )
+				<div className="border-t border-border pt-8 text-center">
+					<p className="text-foreground/70">© {new Date().getFullYear()} DocuAI. All rights reserved.</p>
+				</div>
+			</div>
+		</footer>
+	);
 }

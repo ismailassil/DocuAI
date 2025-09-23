@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
-import { Search, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Link from "next/link";
+import Logo from "./Logo";
 
 export function Header() {
 	return (
@@ -8,50 +9,11 @@ export function Header() {
 			<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 				<div className="flex h-16 items-center justify-between">
 					<div className="flex items-center space-x-2">
-						<div className="flex items-center justify-center w-8 h-8 bg-accent rounded-lg">
-							<Search className="h-5 w-5 text-accent-foreground" />
+						<div className="flex items-center justify-center w-8 h-8 rounded-lg">
+							<Logo />
 						</div>
 						<span className="text-xl font-bold text-foreground">DocuAI</span>
 					</div>
-
-					<nav className="hidden md:flex items-center space-x-8">
-						<a
-							href="#features"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							Features
-						</a>
-						<a
-							href="#how-it-works"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							How it Works
-						</a>
-						<a
-							href="#pricing"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							Pricing
-						</a>
-						<a
-							href="#docs"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							Docs
-						</a>
-						<Link
-							href="/dashboard"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							Dashboard
-						</Link>
-						<Link
-							href="/chat"
-							className="text-sm font-medium text-foreground/80 hover:text-foreground transition-colors"
-						>
-							Chat
-						</Link>
-					</nav>
 
 					<div className="flex items-center space-x-4">
 						<Link href="/login">

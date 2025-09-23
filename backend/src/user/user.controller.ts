@@ -30,6 +30,7 @@ import { createReadStream } from 'fs';
 import { join } from 'path';
 import fs from 'fs';
 import { GET_FILES_DTO } from './entities/getfiles.dto';
+import { SEARCH_DTO } from './entities/search.dto';
 
 @UseGuards(AuthGuard)
 @Controller('user')
@@ -86,14 +87,7 @@ export class UserController {
       throw new NotFoundException('No Files Found');
     }
 
-    return {
-      originalFiles: filesInfo.map(
-        (file) => new FileDTO(file, file.original_name),
-      ),
-      summarizedFiles: filesInfo.map(
-        (file) => new FileDTO(file, file.summarized_filename),
-      ),
-    };
+    return filesInfo.map((file) => new FileDTO(file));
   }
 
   @Get('files')
@@ -105,8 +99,6 @@ export class UserController {
 
     const take = 7;
     const skip = (page - 1) * 7;
-
-    console.log({ take }, { skip });
 
     const filesInfo = await this.databaseService.getUserFiles(
       user.sub,
@@ -157,6 +149,19 @@ export class UserController {
     });
 
     fileStream.pipe(res);
+  }
+
+  @Get('search')
+  async getSearchedQuery(@Req() req: Request, @Query() { value }: SEARCH_DTO) {
+    const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
+
+    const files = await this.userService.searchByName(value, user.sub);
+
+    if (files.length > 0) {
+      return files.map((file) => new FileDTO(file, file.original_name));
+    }
+
+    return files;
   }
 
   @Post('logout')

@@ -42,7 +42,7 @@ export class RefreshGuard implements CanActivate {
       request['refresh_token_info'] = tokenInfo;
       request['user'] = decode;
     } catch (error) {
-      console.log('Error from Refresh Guard');
+      console.log('Error from Refresh Guard', (error as Error).message);
       throw new UnauthorizedException(
         'Error While Verifying',
         (error as Error).message,
@@ -55,9 +55,6 @@ export class RefreshGuard implements CanActivate {
   private isValidToken(tokenInfo: Token | null, exp: number) {
     if (!tokenInfo) throw new UnauthorizedException('Refresh Token Not Found');
 
-    console.group('----------- TokenInfo');
-    console.log(tokenInfo);
-    console.groupEnd();
     if (tokenInfo.is_used === true) {
       throw new UnauthorizedException('Unauthorized use of token');
     } else if (new Date(exp).getTime() > new Date().getTime()) {

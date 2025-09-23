@@ -41,16 +41,13 @@ export default function FileUpload({ setShow, refreshRecentFiles }: Props) {
 
 		const formData = new FormData();
 		files.forEach((file) => formData.append("docs", file));
-		console.log(files);
-		console.log(formData);
 
 		try {
-			const res = await axiosPrivate.post("/user/upload", formData, {
+			await axiosPrivate.post("/user/upload", formData, {
 				headers: {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-			console.log(res);
 			toast.info("SUCCESS", {
 				position: "top-center",
 			});
@@ -93,7 +90,7 @@ export default function FileUpload({ setShow, refreshRecentFiles }: Props) {
 					</span>
 					<div>
 						<p className="font-medium text-sm text-foreground">
-							{file.name.length > 25 ? file.name.slice(0, 25) + "..." : file.name}
+							{file?.name?.length > 25 ? file.name.slice(0, 25) + "..." : file.name}
 						</p>
 						<p className="mt-0.5 text-xs text-muted-foreground">
 							{(file.size / (1024 * 1024)).toFixed(2)} MB

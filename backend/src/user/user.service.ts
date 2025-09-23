@@ -71,8 +71,11 @@ export class UserService {
 
         this.generateSummarizedFile(content, file);
         await this.databaseService.updateFiles(file);
+        console.log('[STATUS] Updated Successfully');
       } catch (error) {
         errorFiles.push({ info: file, error: (error as Error).message });
+        console.log('[STATUS] Not Updated Successfully');
+        await this.databaseService.updateFiles(file, false);
       }
     }
   }
@@ -82,5 +85,14 @@ export class UserService {
 
     if (!fileInfo) throw new ForbiddenException('Not Owner of file');
     return fileInfo;
+  }
+
+  async searchByName(value: string, userId: number) {
+    const files = await this.databaseService.getUserRelatedFilesByName(
+      value,
+      userId,
+    );
+    if (!files) return [];
+    return files;
   }
 }
