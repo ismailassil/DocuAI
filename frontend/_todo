@@ -7,4 +7,4 @@
 [X] Fix the loading state UI when uploading.
 [X] Fix Auth.
 [ ] Add the reason for the failed upload.
-[ ] Add display of summarized file.
+[X] Add display of summarized file.

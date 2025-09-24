@@ -1,4 +1,22 @@
 services:
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - 3000:3000
+    image: frontend:docu-ai
+  
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: backend
+    ports:
+      - 8008:8008
+
   redis:
     image: redis:latest
     container_name: redis
@@ -20,5 +38,3 @@ services:
       - 80:80
     env_file:
       - .env.postgres
-    extra_hosts:
-      - "host.docker.internal:host.gateway"

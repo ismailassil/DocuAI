@@ -13,7 +13,7 @@ export default function GoogleAuth({
 		setLoading(true);
 		try {
 			const res = await axios.get("http://localhost:8008/auth/google");
-			toast.success(res.data.message);
+			toast.success("Google Auth Success");
 			window.location.href = res.data;
 		} catch (error) {
 			toast.error("Error Google Auth");

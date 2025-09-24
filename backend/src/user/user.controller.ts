@@ -164,6 +164,16 @@ export class UserController {
     return files;
   }
 
+  @Get('file-content')
+  async getMarkdownFile(
+    @Req() req: Request,
+    @Query('id', ParseIntPipe) fileId: number,
+  ) {
+    const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
+
+    return await this.userService.getFileContent(user.sub, fileId);
+  }
+
   @Post('logout')
   @HttpCode(HttpStatus.CREATED)
   async logout(@Req() request: Request, @Res() response: Response) {

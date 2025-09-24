@@ -15,6 +15,7 @@ import { DataTable } from "@/components/filesTable/data-table";
 import { columns } from "@/components/filesTable/columns";
 import { File } from "@/lib/File";
 import FileCard from "@/components/FileCard";
+import FileViewer from "@/components/fileViewer";
 
 export class TableFile {
 	id: number;
@@ -38,6 +39,11 @@ export default function Dashboard() {
 	const [showUpload, setShowUpload] = useState(false);
 	const [allFiles, setAllFiles] = useState<TableFile[]>([]);
 	const { axiosPrivate } = useAuth();
+	const [showFile, setShowFile] = useState(false);
+	const [content, setContent] = useState<{
+		title: string;
+		data: string;
+	} | null>(null);
 
 	const getRecentFiles = useCallback(async () => {
 		try {
@@ -151,10 +157,44 @@ export default function Dashboard() {
 		}
 	}
 
+	async function handleReadFile(file: File) {
+		if (!file.is_summarized) return;
+
+		try {
+			const res = await axiosPrivate.get<{ filename: string; content: string }>(
+				"/user/file-content",
+				{
+					params: {
+						id: file.id,
+					},
+				},
+			);
+
+			toast.success("File Content Success");
+			console.log(res.data);
+			setContent({ title: res.data.filename, data: res.data.content });
+			setShowFile(true);
+		} catch (error) {
+			toast.error("File Content Not found");
+			console.log((error as Error).message);
+		}
+	}
+
 	return (
 		<div className="min-h-[calc(100vh-65px)] bg-background">
+			{showFile && (
+				<FileViewer
+					title={content?.title || ""}
+					text={content?.data || ""}
+					onClose={() => {
+						setShowFile(false);
+						setContent(null);
+					}}
+				/>
+			)}
+
 			{showUpload && (
-				<div className="bg-black/30 absolute backdrop-blur-sm h-screen w-full top-1/2 z-10 -translate-x-1/2 left-1/2 -translate-y-1/2">
+				<div className="bg-black/30 absolute backdrop-blur-sm size-full top-1/2 z-10 -translate-x-1/2 left-1/2 -translate-y-1/2">
 					<div className="size-full flex items-center justify-center">
 						<FileUpload
 							setShow={() => setShowUpload(false)}
@@ -274,6 +314,7 @@ export default function Dashboard() {
 										key={file.id}
 										file={file}
 										handleClick={handleSummarizedFile}
+										handleRead={handleReadFile}
 									/>
 								))}
 							</CardContent>

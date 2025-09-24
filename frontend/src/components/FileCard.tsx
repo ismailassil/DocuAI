@@ -7,12 +7,11 @@ import { Eye } from "lucide-react";
 interface Props {
 	file: File;
 	handleClick: (file: File) => Promise<void>;
+	handleRead: (file: File) => Promise<void>;
 }
 
-export default function FileCard({ file, handleClick }: Props) {
-	const { id, filename, createdAt, is_summarized } = file;
-
-	const is_processing = true;
+export default function FileCard({ file, handleClick, handleRead }: Props) {
+	const { id, is_processing, filename, createdAt, is_summarized } = file;
 
 	return (
 		<div key={id} className={`flex items-center gap-3 `}>
@@ -23,6 +22,7 @@ export default function FileCard({ file, handleClick }: Props) {
 				<Badge
 					variant={"outline"}
 					className="h-full w-full hover:scale-105 duration-200 transition-all cursor-pointer"
+					onClick={() => handleRead(file)}
 				>
 					<Eye className="w-full" />
 				</Badge>

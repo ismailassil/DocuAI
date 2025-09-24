@@ -1,14 +1,16 @@
 import {
   ForbiddenException,
   Injectable,
+  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { File } from './entities/file.entity';
 import { FileInfo } from './entities/file_info.type';
 import { writeFile } from 'fs';
-import path from 'path';
 import { AIService } from 'src/ai/ai.service';
+import path from 'path';
+import { readFile } from 'fs/promises';
 
 @Injectable()
 export class UserService {
@@ -94,5 +96,30 @@ export class UserService {
     );
     if (!files) return [];
     return files;
+  }
+
+  async getFileContent(userId: number, fileId: number) {
+    const file = await this.databaseService.getUserFileById(userId, fileId);
+
+    if (!file) throw new NotFoundException('File Not Found');
+
+    const filePath = path.join(
+      __dirname,
+      '../../uploads/' + file.summarized_filename,
+    );
+
+    try {
+      const content = await readFile(filePath, 'utf-8');
+
+      return {
+        filename: file.original_name,
+        content,
+      };
+    } catch (error) {
+      throw new InternalServerErrorException(
+        'Error Occurred while reading',
+        (error as Error).message,
+      );
+    }
   }
 }

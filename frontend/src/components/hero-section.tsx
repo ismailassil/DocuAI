@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowRight, Play, Zap, Shield, Globe } from "lucide-react";
+import { ArrowRight, Zap, Shield, Globe } from "lucide-react";
+import Link from "next/link";
 
 export function HeroSection() {
 	return (
@@ -27,13 +28,16 @@ export function HeroSection() {
 					</p>
 
 					<div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-						<Button
-							size="lg"
-							className="bg-primary text-primary-foreground hover:bg-primary/90"
-						>
-							Get Started
-							<ArrowRight className="ml-2 h-4 w-4" />
-						</Button>
+						<Link href="/signup">
+							<Button
+								size="lg"
+								className="bg-primary text-primary-foreground hover:bg-primary/90"
+								type="button"
+							>
+								Get Started
+								<ArrowRight className="ml-2 h-4 w-4" />
+							</Button>
+						</Link>
 					</div>
 
 					<div className="flex flex-wrap justify-center gap-8 text-sm text-foreground/70">

@@ -124,3 +124,8 @@
 		@apply bg-background text-foreground;
 	}
 }
+
+/* The Tailwindcss takes over markdown default sytels */
+.markdown > * {
+  all: revert;
+}
