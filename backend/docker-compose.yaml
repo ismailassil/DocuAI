@@ -20,5 +20,3 @@ services:
       - 80:80
     env_file:
       - .env.postgres
-    extra_hosts:
-      - "host.docker.internal:host.gateway"

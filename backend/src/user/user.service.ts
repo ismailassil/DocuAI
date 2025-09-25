@@ -11,12 +11,14 @@ import { writeFile } from 'fs';
 import { AIService } from 'src/ai/ai.service';
 import path from 'path';
 import { readFile } from 'fs/promises';
+import { MinIoService } from 'src/min-io/min-io.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private databaseService: DatabaseService,
     private aiService: AIService,
+    private minIOService: MinIoService,
   ) {}
 
   async filterAndSaveFiles(files: Express.Multer.File[], userId: number) {
@@ -32,6 +34,7 @@ export class UserService {
         filename: file.filename,
         summarized_filename: file.filename + '-sum.md',
         user: user,
+        extension: file.mimetype,
       });
 
       filesInfo.push({

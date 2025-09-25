@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 import OpenAI from 'openai';
 import { Message } from './entities/message.entity';
 import { AI_ROLES } from './entities/ai_role.enum';
@@ -10,6 +14,7 @@ import { FileInfo } from 'src/user/entities/file_info.type';
 import { EXTENSTION } from './entities/ext.enum';
 import WordExtractor from 'word-extractor';
 import { ModelNames } from './entities/model.dto';
+import { DatabaseService } from 'src/database/database.service';
 
 interface AI_MESSAGE {
   role: AI_ROLES;
@@ -20,7 +25,10 @@ interface AI_MESSAGE {
 export class AIService {
   private AI: OpenAI;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private databaseService: DatabaseService,
+  ) {
     this.AI = new OpenAI({
       baseURL: configService.getOrThrow('AI_BASE_URL'),
       apiKey: configService.getOrThrow('AI_API_KEY'),
@@ -31,6 +39,7 @@ export class AIService {
     model: ModelNames,
     messages: Message[] | null,
     query: string,
+    content: string,
   ) {
     const context: AI_MESSAGE[] = this.getContext(messages, query);
 
@@ -51,6 +60,16 @@ export class AIService {
               If the latest message does NOT mention any previous topic, 
               answer concisely based on the latest message alone.
               ONLY RESPOND TO THE CONCISELY LATEST MESSAGE`,
+          },
+          {
+            role: 'system',
+            content: 'file content: ' + content,
+          },
+          {
+            role: 'system',
+            content: `IF THE CONTENT OF THE FILE IS NOT NULL,
+              answer the user's question about only the content of the file.
+              DO NOT ANSWER ANY UNRELATED QUESTIONS BESIDE THE FILE`,
           },
           ...context,
         ],
@@ -163,6 +182,27 @@ export class AIService {
         throw new NotFoundException(
           'Model Not Found | Selected by user' + (model as string),
         );
+    }
+  }
+
+  async getFileContent(userId: number, fileId: number) {
+    const fileInfo = await this.databaseService.getUserFileById(userId, fileId);
+
+    if (!fileInfo) throw new NotFoundException('File Not Found');
+
+    // const filePath = path.join(__dirname, '../../uploads/' + fileInfo.filename);
+
+    try {
+      const content = this.extractTextFromFile(
+        new FileInfo(fileInfo.filename, fileInfo.extension),
+      );
+      return content;
+    } catch (error) {
+      console.log('Error While Reading File');
+      throw new InternalServerErrorException(
+        'Error while reading file',
+        (error as Error).message,
+      );
     }
   }
 }

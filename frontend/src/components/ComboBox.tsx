@@ -21,9 +21,10 @@ import { useAuth } from "@/api_client/AuthContext";
 
 interface Props {
 	setValueId: (value: number) => void;
+	valueId: number;
 }
 
-export function ComboBox({ setValueId }: Props) {
+export function ComboBox({ valueId, setValueId }: Props) {
 	const { axiosPrivate } = useAuth();
 	const [files, setFiles] = React.useState<File[]>([]);
 	const [open, setOpen] = React.useState(false);
@@ -32,13 +33,10 @@ export function ComboBox({ setValueId }: Props) {
 
 	const getRecentFiles = React.useCallback(async () => {
 		try {
-			const res = await axiosPrivate.get<{
-				originalFiles: File[];
-				summarizedFiles: File[];
-			}>("/user/recent-files");
+			const res = await axiosPrivate.get<File[]>("/user/recent-files");
 			console.log(res.data);
 			toast.info("Files Found");
-			setFiles(res.data.originalFiles);
+			setFiles(res.data);
 		} catch (error) {
 			toast.error((error as AxiosError<{ message: string }>).response?.data.message);
 			console.log(error);
@@ -101,11 +99,16 @@ export function ComboBox({ setValueId }: Props) {
 								files.map((file) => (
 									<CommandItem
 										key={file.id}
-										value={file.filename}
+										value={String(file.id)}
 										onSelect={(currentValue) => {
-											toast.info(currentValue);
-											setValue(currentValue === value ? "" : currentValue);
-											setValueId(currentValue === value ? -1 : file.id);
+											const selectedId = parseInt(currentValue, 10); // convert back to number
+											const isSame = selectedId === valueId;
+
+											toast.info(`Selected file id: ${selectedId}`);
+
+											setValueId(isSame ? -1 : selectedId);
+											setValue(isSame ? "" : file.filename);
+
 											setOpen(false);
 										}}
 									>

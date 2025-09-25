@@ -54,17 +54,13 @@ export class AIController {
      */
     response.flushHeaders();
 
-    console.log(query.question);
-    console.log(model);
-
     const user = await this.databaseService.getUserById(retUser.sub);
     if (!user) throw new NotFoundException('User Not Found');
-    const fileInfo = await this.databaseService.getUserFileById(
+
+    const FileContent: string = await this.aiService.getFileContent(
       user.id,
       file_id,
     );
-
-    if (!fileInfo) throw new NotFoundException('File Not Found');
 
     // parse the query to not exceed a certain length (200 characters)
     const messages = await this.databaseService.getUserMessageContextByLimit(
@@ -72,7 +68,12 @@ export class AIController {
     );
 
     const question = query.question.trim().slice(0, 500);
-    const res = await this.aiService.semanticSearch(model, messages, question);
+    const res = await this.aiService.semanticSearch(
+      model,
+      messages,
+      question,
+      FileContent,
+    );
 
     let ai_response: string = '';
 

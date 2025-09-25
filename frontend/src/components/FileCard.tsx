@@ -21,7 +21,11 @@ export default function FileCard({ file, handleClick, handleRead }: Props) {
 				</Badge>
 				<Badge
 					variant={"outline"}
-					className="h-full w-full hover:scale-105 duration-200 transition-all cursor-pointer"
+					className={`${
+						!is_summarized || is_processing
+							? "pointer-events-none bg-gray-100 text-gray-400 cursor-not-allowed"
+							: "cursor-pointer"
+					} w-full hover:scale-105 duration-200 transition-all`}
 					onClick={() => handleRead(file)}
 				>
 					<Eye className="w-full" />

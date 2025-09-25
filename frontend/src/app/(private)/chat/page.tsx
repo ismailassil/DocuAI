@@ -233,7 +233,7 @@ export default function ChatAssistant() {
 
 					{/* Input Area */}
 					<div className="px-4 pt-4 space-y-3 border-t flex-shrink-0">
-						<ComboBox setValueId={setSelId} />
+						<ComboBox valueId={selId} setValueId={setSelId} />
 						<div className="w-full">
 							<div className="flex gap-2">
 								<Input

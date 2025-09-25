@@ -9,6 +9,7 @@ import { AIModule } from './ai/ai.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
 import { LoggingMiddleware } from './logging/logging.middleware';
+import { MinIoModule } from './min-io/min-io.module';
 
 @Module({
   controllers: [AppController],
@@ -26,6 +27,7 @@ import { LoggingMiddleware } from './logging/logging.middleware';
     AuthModule,
     DatabaseModule,
     AIModule,
+    MinIoModule,
   ],
 })
 export class AppModule implements NestModule {

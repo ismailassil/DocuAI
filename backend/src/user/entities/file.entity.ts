@@ -38,6 +38,9 @@ export class File {
   @CreateDateColumn()
   createdAt: Date;
 
+  @Column()
+  extension: string;
+
   @Column({ nullable: true })
   reason?: string;
 

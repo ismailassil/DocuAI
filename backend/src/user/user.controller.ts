@@ -17,7 +17,6 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from './user.service';
 import { AIService } from 'src/ai/ai.service';
@@ -45,15 +44,6 @@ export class UserController {
   @Post('upload')
   @UseInterceptors(
     FileFieldsInterceptor([{ name: 'docs', maxCount: 5 }], {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: function (_, file, cb) {
-          cb(
-            null,
-            file.originalname + '-' + Date.now().toString() + file.originalname,
-          );
-        },
-      }),
       limits: {
         fileSize: 1024 * 1024 * 3,
       },
@@ -68,6 +58,7 @@ export class UserController {
     if (!files || !files['docs'])
       throw new NotFoundException('No Docs Has Arrived');
 
+    
     const filesInfo = await this.userService.filterAndSaveFiles(
       files['docs'],
       userExt.sub,

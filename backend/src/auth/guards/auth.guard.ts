@@ -51,7 +51,7 @@ export class AuthGuard implements CanActivate {
       request['user'] = decode;
     } catch (error) {
       console.error('======================================');
-      console.error('Error JWT', error);
+      console.error('Error JWT', (error as Error).message);
       console.error('======================================');
 
       if (error instanceof TokenExpiredError) {
