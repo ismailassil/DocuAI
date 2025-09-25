@@ -1,16 +1,12 @@
 import {
   ForbiddenException,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { File } from './entities/file.entity';
 import { FileInfo } from './entities/file_info.type';
-import { writeFile } from 'fs';
 import { AIService } from 'src/ai/ai.service';
-import path from 'path';
-import { readFile } from 'fs/promises';
 import { MinIoService } from 'src/min-io/min-io.service';
 
 @Injectable()
@@ -28,39 +24,28 @@ export class UserService {
 
     if (!user) throw new NotFoundException('User Not Found');
 
-    files.forEach((file) => {
+    for (const file of files) {
+      const { filename } = await this.minIOService.uploadFile(file);
+
       const newFile = new File({
         original_name: file.originalname,
-        filename: file.filename,
-        summarized_filename: file.filename + '-sum.md',
+        filename: filename,
+        summarized_filename: filename + '-sum.md',
         user: user,
         extension: file.mimetype,
       });
 
       filesInfo.push({
-        name: file.filename,
+        name: filename,
         extension: file.mimetype,
       });
 
       dbFiles.push(newFile);
-    });
+    }
 
     await this.databaseService.saveFiles(dbFiles);
 
     return filesInfo;
-  }
-
-  generateSummarizedFile(content: string, fileInfo: FileInfo) {
-    const filename = path.join(
-      __dirname,
-      '../../uploads',
-      fileInfo.name + '-sum.md',
-    );
-    writeFile(filename, content, 'utf-8', (err) => {
-      if (err) {
-        throw new Error('Writing file', err);
-      }
-    });
   }
 
   async analyzeFiles(filesInfo: FileInfo[]) {
@@ -74,8 +59,9 @@ export class UserService {
         const content = response.choices[0].message.content;
         if (!content) throw new Error('Empty Summarized Content');
 
-        this.generateSummarizedFile(content, file);
+        await this.minIOService.uploadContent(file.name + '-sum.md', content);
         await this.databaseService.updateFiles(file);
+
         console.log('[STATUS] Updated Successfully');
       } catch (error) {
         errorFiles.push({ info: file, error: (error as Error).message });
@@ -106,23 +92,15 @@ export class UserService {
 
     if (!file) throw new NotFoundException('File Not Found');
 
-    const filePath = path.join(
-      __dirname,
-      '../../uploads/' + file.summarized_filename,
-    );
+    const data = await this.minIOService.getContent(file.summarized_filename);
 
-    try {
-      const content = await readFile(filePath, 'utf-8');
+    return {
+      filename: file.original_name,
+      content: data,
+    };
+  }
 
-      return {
-        filename: file.original_name,
-        content,
-      };
-    } catch (error) {
-      throw new InternalServerErrorException(
-        'Error Occurred while reading',
-        (error as Error).message,
-      );
-    }
+  async getObject(filename: string) {
+    return await this.minIOService.getFile(filename);
   }
 }

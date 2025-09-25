@@ -19,15 +19,11 @@ import {
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { DatabaseService } from 'src/database/database.service';
 import { UserService } from './user.service';
-import { AIService } from 'src/ai/ai.service';
 import { AuthGuard } from 'src/auth/guards/auth.guard';
 import type { Cache } from 'cache-manager';
 import type { Request, Response } from 'express';
 import type { EXTRACTED_JWT_PAYLOAD } from 'src/auth/entities/jwt.payload';
 import { FileDTO } from './entities/file.dto';
-import { createReadStream } from 'fs';
-import { join } from 'path';
-import fs from 'fs';
 import { GET_FILES_DTO } from './entities/getfiles.dto';
 import { SEARCH_DTO } from './entities/search.dto';
 
@@ -37,7 +33,6 @@ export class UserController {
   constructor(
     private readonly databaseService: DatabaseService,
     private readonly userService: UserService,
-    private readonly aiService: AIService,
     @Inject('CACHE_MANAGER') private cacheManager: Cache,
   ) {}
 
@@ -58,7 +53,6 @@ export class UserController {
     if (!files || !files['docs'])
       throw new NotFoundException('No Docs Has Arrived');
 
-    
     const filesInfo = await this.userService.filterAndSaveFiles(
       files['docs'],
       userExt.sub,
@@ -101,9 +95,7 @@ export class UserController {
     }
 
     return {
-      files: filesInfo.map(
-        (file) => new FileDTO(file, file.summarized_filename),
-      ),
+      files: filesInfo.map((file) => new FileDTO(file, file.original_name)),
     };
   }
 
@@ -116,30 +108,23 @@ export class UserController {
     const user = req['user'] as EXTRACTED_JWT_PAYLOAD;
     const fileInfo = await this.userService.isValidFileOwnership(id, user.sub);
 
-    const path = join(
-      __dirname,
-      '../../uploads/' + fileInfo.summarized_filename,
+    const stream = await this.userService.getObject(
+      fileInfo.summarized_filename,
     );
-    if (!fs.existsSync(path)) {
-      throw new NotFoundException('File no longer exists');
-    }
 
-    const info = fs.statSync(path);
-
+    console.log(stream);
     res.setHeader('Content-Type', 'text/markdown');
-    res.setHeader('Content-Length', info.size);
     res.setHeader(
       'Content-Disposition',
       `attachment; filename="sum-${fileInfo.original_name}.md"`,
     );
 
-    const fileStream = createReadStream(path);
-    fileStream.on('error', (err) => {
+    stream.on('error', (err) => {
       console.error('Error while Streaming', err);
       res.status(500).end('Error reading file');
     });
 
-    fileStream.pipe(res);
+    stream.pipe(res);
   }
 
   @Get('search')

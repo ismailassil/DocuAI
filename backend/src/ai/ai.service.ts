@@ -7,14 +7,13 @@ import OpenAI from 'openai';
 import { Message } from './entities/message.entity';
 import { AI_ROLES } from './entities/ai_role.enum';
 import { ConfigService } from '@nestjs/config';
-import * as fs from 'fs';
 import PdfParse from 'pdf-parse';
-import path from 'path';
 import { FileInfo } from 'src/user/entities/file_info.type';
 import { EXTENSTION } from './entities/ext.enum';
 import WordExtractor from 'word-extractor';
 import { ModelNames } from './entities/model.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { MinIoService } from 'src/min-io/min-io.service';
 
 interface AI_MESSAGE {
   role: AI_ROLES;
@@ -28,6 +27,7 @@ export class AIService {
   constructor(
     private configService: ConfigService,
     private databaseService: DatabaseService,
+    private readonly minIOService: MinIoService,
   ) {
     this.AI = new OpenAI({
       baseURL: configService.getOrThrow('AI_BASE_URL'),
@@ -73,7 +73,7 @@ export class AIService {
           },
           ...context,
         ],
-        temperature: 0.2,
+        temperature: 0,
         stream: true,
       });
 
@@ -102,7 +102,7 @@ export class AIService {
             content: 'Document Content:\n' + fileContent,
           },
         ],
-        temperature: 0.2,
+        temperature: 0,
       });
 
       return response;
@@ -115,30 +115,25 @@ export class AIService {
 
   private async extractTextFromFile(fileInfo: FileInfo): Promise<string> {
     let content: string = '';
-    const file_path = path.join(__dirname, '../../uploads', fileInfo.name);
 
     switch (fileInfo.extension as EXTENSTION) {
       case EXTENSTION.PDF: {
-        const dataBuffer = fs.readFileSync(file_path);
-        const pdfData = await PdfParse(dataBuffer as Buffer<ArrayBufferLike>);
+        const bufferData = await this.minIOService.getBuffer(fileInfo.name);
+        const pdfData = await PdfParse(bufferData);
         content = pdfData.text;
         break;
       }
       case EXTENSTION.DOCX:
       case EXTENSTION.DOC: {
+        const bufferData = await this.minIOService.getBuffer(fileInfo.name);
         const wordExtrator = new WordExtractor();
-        const extracted = await wordExtrator.extract(file_path);
+        const extracted = await wordExtrator.extract(bufferData);
         content = extracted.getBody();
         break;
       }
       case EXTENSTION.TXT: {
-        fs.readFile(file_path, 'utf-8', (err, data) => {
-          if (err) {
-            console.error('Error reading file', err);
-            return;
-          }
-          content = data;
-        });
+        const rawData = await this.minIOService.getContent(fileInfo.name);
+        content = rawData;
       }
     }
 

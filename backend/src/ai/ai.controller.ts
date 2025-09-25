@@ -57,10 +57,10 @@ export class AIController {
     const user = await this.databaseService.getUserById(retUser.sub);
     if (!user) throw new NotFoundException('User Not Found');
 
-    const FileContent: string = await this.aiService.getFileContent(
-      user.id,
-      file_id,
-    );
+    let FileContent: string = '';
+    if (file_id) {
+      FileContent = await this.aiService.getFileContent(user.id, file_id);
+    }
 
     // parse the query to not exceed a certain length (200 characters)
     const messages = await this.databaseService.getUserMessageContextByLimit(

@@ -1,40 +1,41 @@
 services:
+    frontend:
+        build:
+            context: ./frontend
+            dockerfile: Dockerfile
+        container_name: frontend
+        ports:
+            - 3000:3000
+        image: frontend:docu-ai
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: frontend
-    ports:
-      - 3000:3000
-    image: frontend:docu-ai
-  
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: backend
-    ports:
-      - 8008:8008
+    backend:
+        build:
+            context: ./backend
+            dockerfile: Dockerfile
+        container_name: backend
+        ports:
+            - 8008:8008
+        env_file:
+            - ./backend/.env
 
-  redis:
-    image: redis:latest
-    container_name: redis
-    ports:
-      - 6379:63790
+    redis:
+        image: redis:latest
+        container_name: redis
+        ports:
+            - 6379:63790
 
-  postgreSQL:
-    image: postgres
-    container_name: postgres
-    ports:
-      - 5432:5432
-    env_file:
-      - .env.postgres
+    postgreSQL:
+        image: postgres
+        container_name: postgres
+        ports:
+            - 5432:5432
+        env_file:
+            - ./backend/.env.postgres
 
-  postgreAdmin:
-    image: dpage/pgadmin4:9.8.0
-    container_name: postgres-admin
-    ports:
-      - 80:80
-    env_file:
-      - .env.postgres
+    pgadmin:
+        image: dpage/pgadmin4:9.8.0
+        container_name: pgadmin
+        ports:
+            - 80:80
+        env_file:
+            - ./backend/.env.postgres

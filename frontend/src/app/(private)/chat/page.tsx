@@ -78,7 +78,7 @@ export default function ChatAssistant() {
 			await axiosPrivate.get("/ai/ask", {
 				params: {
 					question: trimmedInput,
-					file_id: selId,
+					file_id: selId === -1 ? undefined : selId,
 					model,
 				},
 				responseType: "stream",
