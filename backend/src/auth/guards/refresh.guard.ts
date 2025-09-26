@@ -3,6 +3,7 @@ import {
   ExecutionContext,
   ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -14,11 +15,15 @@ import { Token } from 'src/user/entities/tokens.entity';
 
 @Injectable()
 export class RefreshGuard implements CanActivate {
+  private readonly logger: Logger;
+
   constructor(
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly databaseService: DatabaseService,
-  ) {}
+  ) {
+    this.logger = new Logger('RefreshGuard');
+  }
 
   /**
    * Only used to check the validity of the Refresh Token
@@ -27,6 +32,7 @@ export class RefreshGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
     const token = request.cookies['refresh_token'] as string;
+    this.logger.verbose(request.cookies['refresh_token']);
 
     if (!token || token.length === 0)
       throw new UnauthorizedException('Refresh Token Missing');
@@ -41,8 +47,10 @@ export class RefreshGuard implements CanActivate {
 
       request['refresh_token_info'] = tokenInfo;
       request['user'] = decode;
+
+      this.logger.log('Verification Passed');
     } catch (error) {
-      console.log('Error from Refresh Guard', (error as Error).message);
+      this.logger.error((error as Error).message);
       throw new UnauthorizedException(
         'Error While Verifying',
         (error as Error).message,
