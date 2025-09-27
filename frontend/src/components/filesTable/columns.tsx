@@ -5,6 +5,7 @@ import { Badge } from "../ui/badge";
 import moment from "moment";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import DataTableRowDownload from "./DataTableRowDownload";
+import { Info } from "lucide-react";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -14,6 +15,7 @@ export type File = {
 	createdAt: Date;
 	isSummarized: "Success" | "Failed";
 	isProcessed: boolean;
+	reason?: string;
 };
 
 interface FilesColumnsProps {
@@ -26,20 +28,33 @@ export const columns = ({ onDownload }: FilesColumnsProps): ColumnDef<File>[] =>
 		header: () => <div className="text-center">Summary</div>,
 		cell: ({ row }) => {
 			const value = row.getValue("isSummarized") as File["isSummarized"];
+			const reason = row.original.reason as string;
 			const isProcessed = row.original.isProcessed as boolean;
 			const text = (isProcessed && "Handling") || value;
 
 			return (
 				<div className="flex justify-center">
-					<Badge
-						variant={
-							(isProcessed && "outline") ||
-							(value === "Success" ? "secondary" : "destructive")
-						}
-						className="w-17"
-					>
-						{text}
-					</Badge>
+					<Tooltip>
+						<TooltipTrigger>
+							<Badge
+								variant={
+									(isProcessed && "outline") ||
+									(value === "Success" ? "secondary" : "destructive")
+								}
+								className="w-17"
+							>
+								{text}
+							</Badge>
+						</TooltipTrigger>
+						{value === "Failed" && (
+							<TooltipContent className="max-w-70 py-2 space-y-2">
+								<p className="font-bold mt-1 flex items-center gap-2">
+									<Info size={18} /> Error
+								</p>
+								<p>{reason}</p>
+							</TooltipContent>
+						)}
+					</Tooltip>
 				</div>
 			);
 		},

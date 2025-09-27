@@ -2,7 +2,7 @@ import { File } from "@/lib/File";
 import { Badge } from "./ui/badge";
 import moment from "moment";
 import { Spinner } from "./ui/shadcn-io/spinner";
-import { Eye } from "lucide-react";
+import { Eye, Info } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface Props {
@@ -62,7 +62,10 @@ export default function FileCard({ file, handleClick, handleRead }: Props) {
 						</Badge>
 					</TooltipTrigger>
 					{!is_summarized && (
-						<TooltipContent>
+						<TooltipContent className="max-w-70 py-2 space-y-2">
+							<p className="font-bold mt-1 flex items-center gap-2">
+								<Info size={18} /> Error
+							</p>
 							<p>{file.reason}</p>
 						</TooltipContent>
 					)}

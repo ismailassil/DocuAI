@@ -58,7 +58,7 @@ export class UserService {
       try {
         const response = await this.aiService.analyzeDocs(file);
 
-        const content = response.choices[0].message.content;
+        const content = response?.choices[0].message.content;
         if (!content) throw new Error('Empty Summarized Content');
 
         await this.minIOService.uploadContent(file.name + '-sum.md', content);
