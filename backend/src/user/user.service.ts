@@ -1,6 +1,7 @@
 import {
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
@@ -11,11 +12,15 @@ import { MinIoService } from 'src/min-io/min-io.service';
 
 @Injectable()
 export class UserService {
+  private readonly logger: Logger;
+
   constructor(
     private databaseService: DatabaseService,
     private aiService: AIService,
     private minIOService: MinIoService,
-  ) {}
+  ) {
+    this.logger = new Logger('UserService');
+  }
 
   async filterAndSaveFiles(files: Express.Multer.File[], userId: number) {
     const dbFiles: File[] = [];
@@ -49,11 +54,8 @@ export class UserService {
   }
 
   async analyzeFiles(filesInfo: FileInfo[]) {
-    const errorFiles: { info: FileInfo; error: string }[] = [];
-
     for (const file of filesInfo) {
       try {
-        // TODO - Upload the file into deepseek for analyzing and getting new file summarized
         const response = await this.aiService.analyzeDocs(file);
 
         const content = response.choices[0].message.content;
@@ -62,11 +64,14 @@ export class UserService {
         await this.minIOService.uploadContent(file.name + '-sum.md', content);
         await this.databaseService.updateFiles(file);
 
-        console.log('[STATUS] Updated Successfully');
+        this.logger.log('[analyzeFiles] Analyzed Successfully');
       } catch (error) {
-        errorFiles.push({ info: file, error: (error as Error).message });
-        console.log('[STATUS] Not Updated Successfully');
-        await this.databaseService.updateFiles(file, false);
+        this.logger.error('[analyzeFiles]', (error as Error).message);
+        await this.databaseService.updateFiles(
+          file,
+          false,
+          (error as Error).message,
+        );
       }
     }
   }
@@ -74,7 +79,7 @@ export class UserService {
   async isValidFileOwnership(fileId: number, userId: number) {
     const fileInfo = await this.databaseService.getUserFileById(userId, fileId);
 
-    if (!fileInfo) throw new ForbiddenException('Not Owner of file');
+    if (!fileInfo) throw new ForbiddenException('Not Owner of the file');
     return fileInfo;
   }
 

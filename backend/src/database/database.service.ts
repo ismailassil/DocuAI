@@ -183,10 +183,18 @@ export class DatabaseService {
     });
   }
 
-  async updateFiles(file: FileInfo, is_summarized: boolean = true) {
+  async updateFiles(
+    file: FileInfo,
+    is_summarized: boolean = true,
+    reason?: string,
+  ) {
     return await this.fileRepo.update(
       { filename: file.name },
-      { is_summarized: is_summarized, is_processing: false },
+      {
+        is_summarized: is_summarized,
+        is_processing: false,
+        reason: !is_summarized ? reason : '',
+      },
     );
   }
 

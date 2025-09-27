@@ -32,7 +32,6 @@ export class RefreshGuard implements CanActivate {
   async canActivate(context: ExecutionContext) {
     const request = context.switchToHttp().getRequest<Request>();
     const token = request.cookies['refresh_token'] as string;
-    this.logger.verbose(request.cookies['refresh_token']);
 
     if (!token || token.length === 0)
       throw new UnauthorizedException('Refresh Token Missing');

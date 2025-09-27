@@ -6,6 +6,7 @@ export class FileDTO {
   createdAt: Date;
   is_summarized: boolean;
   is_processing: boolean;
+  reason?: string;
 
   constructor(file: File, name?: string | null) {
     this.id = file.id;
@@ -17,5 +18,6 @@ export class FileDTO {
     this.createdAt = file.createdAt;
     this.is_summarized = file.is_summarized;
     this.is_processing = file.is_processing;
+    this.reason = file.reason;
   }
 }

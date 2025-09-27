@@ -3,6 +3,7 @@ import { Badge } from "./ui/badge";
 import moment from "moment";
 import { Spinner } from "./ui/shadcn-io/spinner";
 import { Eye } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 interface Props {
 	file: File;
@@ -47,15 +48,25 @@ export default function FileCard({ file, handleClick, handleRead }: Props) {
 				</p>
 			</div>
 			<div className="flex flex-col gap-1">
-				<Badge
-					variant={
-						(is_processing && "outline") ||
-						(is_summarized ? "secondary" : "destructive")
-					}
-					className="w-full"
-				>
-					{(is_processing && "Handling") || (is_summarized ? "Success" : "Failed")}
-				</Badge>
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<Badge
+							variant={
+								(is_processing && "outline") ||
+								(is_summarized ? "secondary" : "destructive")
+							}
+							className="w-full"
+						>
+							{(is_processing && "Handling") ||
+								(is_summarized ? "Success" : "Failed")}
+						</Badge>
+					</TooltipTrigger>
+					{!is_summarized && (
+						<TooltipContent>
+							<p>{file.reason}</p>
+						</TooltipContent>
+					)}
+				</Tooltip>
 				<Badge
 					variant="outline"
 					className={`${

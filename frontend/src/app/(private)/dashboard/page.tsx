@@ -23,6 +23,7 @@ export class TableFile {
 	createdAt: Date;
 	isSummarized: "Success" | "Failed";
 	isProcessed: boolean;
+	reason?: string;
 
 	constructor(file: File) {
 		this.id = file.is_summarized === true ? file.id : -1;
@@ -30,6 +31,7 @@ export class TableFile {
 		this.createdAt = file.createdAt;
 		this.isSummarized = file.is_summarized === true ? "Success" : "Failed";
 		this.isProcessed = file.is_processing;
+		this.reason = file.reason;
 	}
 }
 

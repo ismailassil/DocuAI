@@ -4,4 +4,5 @@ export interface File {
 	createdAt: Date;
 	is_summarized: boolean;
 	is_processing: boolean;
+	reason?: string;
 }
